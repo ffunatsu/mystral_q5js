@@ -4,7 +4,7 @@
 
 Minimal [q5.js](https://q5js.org/) sample for [Mystral Native](https://github.com/mystralengine/mystralnative).
 
-The local build uses this [fork](https://github.com/ffunatsu/mystralnative).
+The local build uses this [fork](https://github.com/ffunatsu/mystralnative/tree/dev).
 
 This project also includes a locally modified [q5.js implementation](q5.js) for Mystral WebGPU compatibility.
 
