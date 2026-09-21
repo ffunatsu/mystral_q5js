@@ -32,7 +32,8 @@ mystral run bundle-mouse.js
 ## Mystral Local build
 
 ```powershell
-git clone --branch dev https://github.com/ffunatsu/mystralnative # forked dev branch
+git submodule update --init --recursive
+
 C:\vcpkg\vcpkg.exe install curl:x64-windows
 cd mystralnative
 # Ensure unzip and 7z are available on PATH.

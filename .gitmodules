@@ -1,0 +1,3 @@
+[submodule "mystralnative"]
+	path = mystralnative
+	url = https://github.com/ffunatsu/mystralnative
