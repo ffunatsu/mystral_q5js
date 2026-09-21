@@ -1,0 +1,16 @@
+{
+  "name": "mystral_qjs_test",
+  "version": "0.1.0",
+  "description": "",
+  "license": "0BSD",
+  "author": "",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "q5": "^4.8.2"
+  }
+}
