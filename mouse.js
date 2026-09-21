@@ -34,7 +34,7 @@ function mouseReleased() {
 }
 
 function mouseMoved() {
-  if (!pointerDown) draw();
+  // if (!pointerDown) draw();
 }
 
 function keyPressed(event) {
