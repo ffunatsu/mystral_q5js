@@ -1,5 +1,7 @@
 # q5.js + Mystral Native
 
+<img width="400px" src="docs/screenshot.png">
+
 Minimal [q5.js](https://q5js.org/) sample for [Mystral Native](https://github.com/mystralengine/mystralnative).
 
 The local build uses this [fork](https://github.com/ffunatsu/mystralnative).
