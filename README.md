@@ -19,13 +19,17 @@ mystral run bundle-diagnose.js
 ## Local build
 
 ```powershell
+git clone https://github.com/mystralengine/mystralnative
 C:\vcpkg\vcpkg.exe install curl:x64-windows
-cd refs/mystralnative
+cd mystralnative
 node scripts/download-deps.mjs
 cmake -B build `
   -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake `
   -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded `
-  -DMYSTRAL_USE_V8=OFF -DMYSTRAL_USE_QUICKJS=ON `
-  -DMYSTRAL_USE_DAWN=OFF -DMYSTRAL_USE_WGPU=ON
+  -DMYSTRAL_USE_V8=ON -DMYSTRAL_USE_QUICKJS=OFF `
+  -DMYSTRAL_USE_DAWN=ON -DMYSTRAL_USE_WGPU=OFF `
+  -DMYSTRAL_USE_SWC=OFF
 cmake --build build --config Release --parallel
+
+.\mystralnative\build\Release\mystral.exe run bundle-diagnose.js
 ```

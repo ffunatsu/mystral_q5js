@@ -8,13 +8,13 @@ import("./q5.js")
     console.log("diagnose: typeof Q5 = " + typeof Q5);
     console.log("diagnose: typeof window = " + typeof window);
     console.log("diagnose: typeof Canvas = " + typeof Canvas);
-    return Canvas(640, 360);
+    return Canvas(1280, 720);
   })
   .then(() => {
     console.log("diagnose: Canvas ready");
     background("#101820");
     fill("#f2f4f3");
-    circle(width / 2, height / 2, 160);
+    circle(0, 0, 160);
     // textAlign(CENTER, CENTER);
     // textSize(48);
     // text("Hello, world!", width / 2, height / 2);

@@ -4645,7 +4645,7 @@ struct Q5 {
           {
             binding: 1,
             visibility: GPUShaderStage.VERTEX,
-            buffer: { type: "storage" }
+            buffer: { type: "read-only-storage" }
           },
           {
             binding: 2,
@@ -8209,12 +8209,12 @@ Promise.resolve().then(() => (init_q5(), q5_exports)).then(() => {
   console.log("diagnose: typeof Q5 = " + typeof Q5);
   console.log("diagnose: typeof window = " + typeof window);
   console.log("diagnose: typeof Canvas = " + typeof Canvas);
-  return Canvas(640, 360);
+  return Canvas(1280, 720);
 }).then(() => {
   console.log("diagnose: Canvas ready");
   background("#101820");
   fill("#f2f4f3");
-  circle(width / 2, height / 2, 160);
+  circle(0, 0, 160);
   console.log("diagnose: hello world drawn");
 }).catch((error) => {
   console.log("diagnose: q5 import failed");
