@@ -22,6 +22,7 @@ mystral run bundle-diagnose.js
 git clone https://github.com/ffunatsu/mystralnative # forked version
 C:\vcpkg\vcpkg.exe install curl:x64-windows
 cd mystralnative
+# Ensure unzip and 7z are available on PATH.
 node scripts/download-deps.mjs
 cmake -B build `
   -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake `
@@ -30,6 +31,10 @@ cmake -B build `
   -DMYSTRAL_USE_DAWN=ON -DMYSTRAL_USE_WGPU=OFF `
   -DMYSTRAL_USE_SWC=OFF
 cmake --build build --config Release --parallel
+```
 
+then at project root:
+
+```powershell
 .\mystralnative\build\Release\mystral.exe run bundle-diagnose.js
 ```
