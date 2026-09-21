@@ -16,7 +16,7 @@ Diagnostic bundle:
 mystral run bundle-diagnose.js
 ```
 
-## Local build
+## Mystral Local build
 
 ```powershell
 git clone https://github.com/ffunatsu/mystralnative # forked version
