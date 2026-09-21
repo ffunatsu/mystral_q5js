@@ -54,5 +54,5 @@ q5.mouseReleased = mouseReleased;
 q5.mouseMoved = mouseMoved;
 q5.keyPressed = keyPressed;
 
-draw();
+//draw();
 console.log("mouse example ready");
