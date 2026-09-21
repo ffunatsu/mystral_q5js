@@ -1,0 +1,15 @@
+{
+  "name": "mystral-native-addon-test",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal node-gyp addon loading test for Mystral Native",
+  "main": "load-addon.js",
+  "scripts": {
+    "build": "node-gyp rebuild",
+    "test:node": "node load-addon.js",
+    "test:mystral": "mystral run load-addon.js"
+  },
+  "devDependencies": {
+    "node-gyp": "^13.0.2"
+  }
+}
