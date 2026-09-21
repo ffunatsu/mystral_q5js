@@ -19,7 +19,7 @@ mystral run bundle-diagnose.js
 ## Local build
 
 ```powershell
-git clone https://github.com/mystralengine/mystralnative
+git clone https://github.com/ffunatsu/mystralnative # forked version
 C:\vcpkg\vcpkg.exe install curl:x64-windows
 cd mystralnative
 node scripts/download-deps.mjs
