@@ -1,6 +1,8 @@
-# q5 + Mystral Native
+# q5.js + Mystral Native
 
-Minimal q5 WebGPU test.
+Minimal [q5.js](https://q5js.org/) sample for [Mystral Native](https://github.com/mystralengine/mystralnative).
+
+The local build uses this [fork](https://github.com/ffunatsu/mystralnative).
 
 ## Bundle and run
 
