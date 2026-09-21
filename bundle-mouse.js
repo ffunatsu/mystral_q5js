@@ -8259,7 +8259,6 @@ function mouseReleased() {
   pointerDown = false;
 }
 function mouseMoved() {
-  if (!pointerDown) draw();
 }
 function keyPressed(event) {
   console.log("key pressed", event.key, event.code);
@@ -8276,7 +8275,6 @@ q5.mousePressed = mousePressed;
 q5.mouseReleased = mouseReleased;
 q5.mouseMoved = mouseMoved;
 q5.keyPressed = keyPressed;
-draw();
 console.log("mouse example ready");
 /**
  * q5.js
