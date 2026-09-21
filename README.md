@@ -22,6 +22,13 @@ Diagnostic bundle:
 mystral run bundle-diagnose.js
 ```
 
+Mouse input example:
+
+```powershell
+./bundle-mouse.ps1
+mystral run bundle-mouse.js
+```
+
 ## Mystral Local build
 
 ```powershell

@@ -4718,6 +4718,9 @@ Q5.modules.sound = ($, q) => {
 	$.getAudioContext = () => Q5.aud;
 
 	$.userStartAudio = () => {
+		if (globalThis.__mystral && !Q5.aud) {
+			Q5.aud = { state: 'running', resume() {} };
+		}
 		if (window.AudioContext) {
 			if (Q5._offlineAudio) {
 				Q5._offlineAudio = false;

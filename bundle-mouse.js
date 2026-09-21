@@ -28,11 +28,41 @@ if (isMystral) {
           element.getBoundingClientRect = () => ({
             left: 0,
             top: 0,
-            width: element.width || 0,
-            height: element.height || 0,
-            right: element.width || 0,
-            bottom: element.height || 0
+            width: window.innerWidth || element.width || 0,
+            height: window.innerHeight || element.height || 0,
+            right: window.innerWidth || element.width || 0,
+            bottom: window.innerHeight || element.height || 0
           });
+        }
+        if (String(tagName).toLowerCase() === "canvas" && !element.parentElement) {
+          Object.defineProperties(element, {
+            clientWidth: { configurable: true, get: () => window.innerWidth || element.width || 0 },
+            clientHeight: { configurable: true, get: () => window.innerHeight || element.height || 0 },
+            scrollWidth: { configurable: true, get: () => window.innerWidth || element.width || 0 },
+            scrollHeight: { configurable: true, get: () => window.innerHeight || element.height || 0 }
+          });
+          const parent = {
+            classList: { add() {
+            }, remove() {
+            } },
+            append(child) {
+              child.parentElement = parent;
+            },
+            appendChild(child) {
+              child.parentElement = parent;
+            },
+            removeChild(child) {
+            },
+            getBoundingClientRect: () => ({
+              left: 0,
+              top: 0,
+              width: element.width || 0,
+              height: element.height || 0,
+              right: element.width || 0,
+              bottom: element.height || 0
+            })
+          };
+          element.parentElement = parent;
         }
       }
       return element;
@@ -1036,14 +1066,14 @@ Q5.renderers.c2d.shapes = ($) => {
       $.ctx.stroke();
     }
   };
-  function rect2(x, y, w, h) {
+  function rect(x, y, w, h) {
     $.ctx.beginPath();
     $.ctx.rect(x, y, w, h);
     ink();
   }
   function roundedRect(x, y, w, h, tl, tr, br, bl) {
     if (tl === void 0) {
-      return rect2(x, y, w, h);
+      return rect(x, y, w, h);
     }
     if (tr === void 0) {
       return roundedRect(x, y, w, h, tl, tl, tl, tl);
@@ -3055,11 +3085,11 @@ Q5.modules.input = ($, q) => {
     else $._wheel = p;
     let x, y;
     if (c) {
-      let rect2 = c.getBoundingClientRect();
+      let rect = c.getBoundingClientRect();
       let sx = c.scrollWidth / $.width || 1;
       let sy = c.scrollHeight / $.height || 1;
-      x = (e.clientX - rect2.left) / sx;
-      y = (e.clientY - rect2.top) / sy;
+      x = (e.clientX - rect.left) / sx;
+      y = (e.clientY - rect.top) / sy;
       if ($._webgpu) {
         x -= c.hw;
         y -= c.hh;
@@ -3184,13 +3214,13 @@ Q5.modules.input = ($, q) => {
   };
   $.keyIsDown = (v) => !!keysHeld[typeof v == "string" ? v.toLowerCase() : v];
   function getTouchInfo(touch) {
-    const rect2 = $.canvas.getBoundingClientRect(), sx = $.canvas.scrollWidth / $.width || 1, sy = $.canvas.scrollHeight / $.height || 1;
+    const rect = $.canvas.getBoundingClientRect(), sx = $.canvas.scrollWidth / $.width || 1, sy = $.canvas.scrollHeight / $.height || 1;
     let modX = 0, modY = 0;
     if ($._webgpu) {
       modX = $.halfWidth;
       modY = $.halfHeight;
     }
-    let x = (touch.clientX - rect2.left) / sx - modX, y = (touch.clientY - rect2.top) / sy - modY;
+    let x = (touch.clientX - rect.left) / sx - modX, y = (touch.clientY - rect.top) / sy - modY;
     if (!$._flippedY) y *= -1;
     return {
       x,
@@ -8203,22 +8233,51 @@ if (typeof document == "object") {
   } else runPython();
 }
 
-// main.js
-console.log("before Canvas");
+// mouse.js
 await Canvas(1280, 720);
-console.log("Canvas ready");
-background("#101820");
-noStroke();
-fill("#ff6b6b");
-circle(-280, -120, 180);
-fill("#ffd166");
-rect(-90, -120, 180, 140);
-fill("#4ecdc4");
-triangle(150, 60, 300, -160, 390, 60);
-stroke("#f2f4f3");
-strokeWeight(10);
-line(-440, 180, 440, 180);
-console.log("hello world drawn");
+var clicked = [];
+var pointerDown = false;
+function draw() {
+  background("#101820");
+  noStroke();
+  fill("#4ecdc4");
+  circle(mouseX, mouseY, 90);
+  fill("#ff6b6b");
+  for (const point of clicked) circle(point.x, point.y, 36);
+  stroke("#f2f4f3");
+  strokeWeight(2);
+  line(mouseX - 12, mouseY, mouseX + 12, mouseY);
+  line(mouseX, mouseY - 12, mouseX, mouseY + 12);
+}
+function mousePressed(event) {
+  pointerDown = true;
+  clicked.push({ x: mouseX, y: mouseY });
+  if (clicked.length > 20) clicked.shift();
+  console.log("mouse pressed", event.clientX, event.clientY, mouseX, mouseY);
+}
+function mouseReleased() {
+  pointerDown = false;
+}
+function mouseMoved() {
+  if (!pointerDown) draw();
+}
+function keyPressed(event) {
+  console.log("key pressed", event.key, event.code);
+  if (event.key.toLowerCase() === "f") {
+    if (globalThis.mystral?.toggleFullscreen) {
+      globalThis.mystral.toggleFullscreen();
+    } else {
+      console.log("Mystral fullscreen API is not available");
+    }
+  }
+}
+q5.draw = draw;
+q5.mousePressed = mousePressed;
+q5.mouseReleased = mouseReleased;
+q5.mouseMoved = mouseMoved;
+q5.keyPressed = keyPressed;
+draw();
+console.log("mouse example ready");
 /**
  * q5.js
  * @version 4.8
