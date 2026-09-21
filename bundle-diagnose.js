@@ -3980,6 +3980,10 @@ main {
       };
       $.getAudioContext = () => Q52.aud;
       $.userStartAudio = () => {
+        if (globalThis.__mystral && !Q52.aud) {
+          Q52.aud = { state: "running", resume() {
+          } };
+        }
         if (window.AudioContext) {
           if (Q52._offlineAudio) {
             Q52._offlineAudio = false;
@@ -8177,6 +8181,9 @@ window._runPy = _run_py
 var isMystral = typeof global === "undefined";
 if (isMystral) {
   globalThis.global = globalThis;
+  globalThis.__mystral = true;
+  globalThis.PointerEvent ??= function PointerEvent() {
+  };
   if (typeof document === "object" && typeof document.getElementsByTagName !== "function") {
     document.getElementsByTagName = () => [];
   }
@@ -8195,6 +8202,46 @@ if (isMystral) {
         if (String(tagName).toLowerCase() === "canvas" && !element.classList) {
           element.classList = { add() {
           } };
+        }
+        if (String(tagName).toLowerCase() === "canvas" && typeof element.getBoundingClientRect !== "function") {
+          element.getBoundingClientRect = () => ({
+            left: 0,
+            top: 0,
+            width: window.innerWidth || element.width || 0,
+            height: window.innerHeight || element.height || 0,
+            right: window.innerWidth || element.width || 0,
+            bottom: window.innerHeight || element.height || 0
+          });
+        }
+        if (String(tagName).toLowerCase() === "canvas" && !element.parentElement) {
+          Object.defineProperties(element, {
+            clientWidth: { configurable: true, get: () => window.innerWidth || element.width || 0 },
+            clientHeight: { configurable: true, get: () => window.innerHeight || element.height || 0 },
+            scrollWidth: { configurable: true, get: () => window.innerWidth || element.width || 0 },
+            scrollHeight: { configurable: true, get: () => window.innerHeight || element.height || 0 }
+          });
+          const parent = {
+            classList: { add() {
+            }, remove() {
+            } },
+            append(child) {
+              child.parentElement = parent;
+            },
+            appendChild(child) {
+              child.parentElement = parent;
+            },
+            removeChild(child) {
+            },
+            getBoundingClientRect: () => ({
+              left: 0,
+              top: 0,
+              width: element.width || 0,
+              height: element.height || 0,
+              right: element.width || 0,
+              bottom: element.height || 0
+            })
+          };
+          element.parentElement = parent;
         }
       }
       return element;
