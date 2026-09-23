@@ -90,6 +90,6 @@ macOS:
 
 ## License
 
-Same as Mystral Mative, and q5.js
+Same as Mystral Native, and q5.js
 
 Please also check ones for licenses.
