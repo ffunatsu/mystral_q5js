@@ -12,21 +12,24 @@ This project also includes a locally modified [q5.js implementation](q5.js) for 
 
 ```powershell
 ./bundle.ps1
-mystral run bundle.js
+mystral run bundle-main.js
 ```
 
 Diagnostic bundle:
 
 ```powershell
-./bundle-diagnose.ps1
+./bundle.ps1 diagnose
 mystral run bundle-diagnose.js
 ```
 
-Mouse input example:
+## More examples
 
 ```powershell
-./bundle-mouse.ps1
+./bundle.ps1 mouse
 mystral run bundle-mouse.js
+
+./bundle.ps1 image
+mystral run bundle-image.js
 ```
 
 ## Mystral Local build
