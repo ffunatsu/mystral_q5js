@@ -90,6 +90,6 @@ macOS:
 
 ## License
 
-Same as Mystral Native, and q5.js
+Same as Mystral Native, q5.js, and [libsharedmemory](https://github.com/kyr0/libsharedmemory)
 
 Please also check ones for licenses.
