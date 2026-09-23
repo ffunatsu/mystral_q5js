@@ -8,39 +8,47 @@ The local build uses this [fork](https://github.com/ffunatsu/mystralnative/tree/
 
 This project also includes a locally modified [q5.js implementation](q5.js) for Mystral WebGPU compatibility.
 
-## Bundle and run
+## Bundle and run (examples)
 
-```powershell
-./bundle.ps1
+```bash 
+.\bundle.ps1 # Windows
+bash ./bundle.sh # macOS
+
 mystral run bundle-main.js
 ```
 
 Diagnostic bundle:
 
-```powershell
-./bundle.ps1 diagnose
+```text
+.\bundle.ps1 diagnose     # Windows
+bash ./bundle.sh diagnose # macOS
 mystral run bundle-diagnose.js
 ```
 
 ## More examples
 
-```powershell
-./bundle.ps1 mouse
+```text
+.\bundle.ps1 mouse        # Windows
+bash ./bundle.sh mouse    # macOS
 mystral run bundle-mouse.js
 
-./bundle.ps1 image
+.\bundle.ps1 image        # Windows
+bash ./bundle.sh image    # macOS
 mystral run bundle-image.js
 ```
 
 ## Mystral Local build
 
-```powershell
+```text
 git submodule update --init --recursive
-
-C:\vcpkg\vcpkg.exe install curl:x64-windows
 cd mystralnative
-# Ensure unzip and 7z are available on PATH.
 node scripts/download-deps.mjs
+```
+
+Windows (PowerShell):
+
+```powershell
+C:\vcpkg\vcpkg.exe install curl:x64-windows
 cmake -B build `
   -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake `
   -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded `
@@ -50,8 +58,26 @@ cmake -B build `
 cmake --build build --config Release --parallel
 ```
 
-then at project root:
+macOS:
+
+```bash
+cmake -B build \
+  -DMYSTRAL_USE_V8=ON -DMYSTRAL_USE_QUICKJS=OFF \
+  -DMYSTRAL_USE_DAWN=ON -DMYSTRAL_USE_WGPU=OFF \
+  -DMYSTRAL_USE_SWC=OFF
+cmake --build build --config Release --parallel
+```
+
+Then, from the project root:
+
+Windows:
 
 ```powershell
 .\mystralnative\build\Release\mystral.exe run bundle-diagnose.js
+```
+
+macOS:
+
+```bash
+./mystralnative/build/mystral run bundle-diagnose.js
 ```
