@@ -8,6 +8,9 @@ The local build uses this [fork](https://github.com/ffunatsu/mystralnative/tree/
 
 This project also includes a locally modified [q5.js implementation](q5.js) for Mystral WebGPU compatibility.
 
+> [!Note]
+> This project is AI-assisted, using GitHub Copilot.
+
 ## Bundle and run (examples)
 
 ```bash 
