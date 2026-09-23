@@ -42,6 +42,7 @@ mystral run bundle-image.js
 ```text
 git submodule update --init --recursive
 cd mystralnative
+# make sure unzip and 7zip commands available on PATH
 node scripts/download-deps.mjs
 ```
 
