@@ -9,6 +9,8 @@ Run these commands in this directory.
 ```powershell
 npm install
 npm run server
+
+# or, npm run server:mystral
 ```
 
 Then in another terminal:
