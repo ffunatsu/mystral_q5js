@@ -39,7 +39,7 @@ mystral run bundle-image.js
 
 ## Mystral Local build
 
-```text
+```bash
 git submodule update --init --recursive
 cd mystralnative
 # make sure unzip and 7zip commands available on PATH
