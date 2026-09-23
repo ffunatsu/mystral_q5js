@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "server": "node echo-server.js",
+    "server:mystral": "mystral run echo-server-mystral.js"
     "test:mystral": "mystral run client.js"
   },
   "dependencies": {
