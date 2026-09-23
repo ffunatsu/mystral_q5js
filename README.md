@@ -87,3 +87,9 @@ macOS:
 ```bash
 ./mystralnative/build/mystral run bundle-diagnose.js
 ```
+
+## License
+
+Same as Mystral Mative, and q5.js
+
+Please also check ones for licenses.
