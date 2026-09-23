@@ -1066,14 +1066,14 @@ Q5.renderers.c2d.shapes = ($) => {
       $.ctx.stroke();
     }
   };
-  function rect2(x, y, w, h) {
+  function rect(x, y, w, h) {
     $.ctx.beginPath();
     $.ctx.rect(x, y, w, h);
     ink();
   }
   function roundedRect(x, y, w, h, tl, tr, br, bl) {
     if (tl === void 0) {
-      return rect2(x, y, w, h);
+      return rect(x, y, w, h);
     }
     if (tr === void 0) {
       return roundedRect(x, y, w, h, tl, tl, tl, tl);
@@ -1922,17 +1922,17 @@ Q5.renderers.c2d.text = ($, q) => {
     else lines = str.split("\n");
     if (str.length > w) {
       let wrapped = [];
-      for (let line2 of lines) {
+      for (let line of lines) {
         let i = 0;
-        while (i < line2.length) {
+        while (i < line.length) {
           let max = i + w;
-          if (max >= line2.length) {
-            wrapped.push(line2.slice(i));
+          if (max >= line.length) {
+            wrapped.push(line.slice(i));
             break;
           }
-          let end = line2.lastIndexOf(" ", max);
+          let end = line.lastIndexOf(" ", max);
           if (end === -1 || end < i) end = max;
-          wrapped.push(line2.slice(i, end));
+          wrapped.push(line.slice(i, end));
           i = end + 1;
         }
       }
@@ -1954,8 +1954,8 @@ Q5.renderers.c2d.text = ($, q) => {
         let descent = measure.fontBoundingBoxDescent;
         $.ctx.textBaseline = ogBaseline;
         let maxWidth = 0;
-        for (let line2 of lines) {
-          let lineWidth = ctx.measureText(line2).width;
+        for (let line of lines) {
+          let lineWidth = ctx.measureText(line).width;
           if (lineWidth > maxWidth) maxWidth = lineWidth;
         }
         let imgW = Math.ceil(maxWidth), imgH = Math.ceil(leading * lines.length + descent);
@@ -1990,9 +1990,9 @@ Q5.renderers.c2d.text = ($, q) => {
       ctx.fillStyle = "black";
     }
     let lineAmount = 0;
-    for (let line2 of lines) {
-      if ($.__doStroke && $._strokeSet) ctx.strokeText(line2, tX, tY);
-      if ($.__doFill) ctx.fillText(line2, tX, tY);
+    for (let line of lines) {
+      if ($.__doStroke && $._strokeSet) ctx.strokeText(line, tX, tY);
+      if ($.__doFill) ctx.fillText(line, tX, tY);
       tY += leading;
       lineAmount++;
       if (lineAmount >= h) break;
@@ -3021,8 +3021,8 @@ Q5.modules.fes = ($) => {
   };
   if (typeof window !== "undefined" && window.addEventListener) {
     let err = new Error(), lines = err.stack?.split("\n") || "";
-    for (let line2 of lines) {
-      let match = line2.match(/(https?:\/\/[^\s)]+\.js|\b\/[^\s)]+\.js)/);
+    for (let line of lines) {
+      let match = line.match(/(https?:\/\/[^\s)]+\.js|\b\/[^\s)]+\.js)/);
       if (match) {
         let file = match[1];
         if (!/q5|p5play|q5play|brython/i.test(file)) {
@@ -3112,11 +3112,11 @@ Q5.modules.input = ($, q) => {
     else $._wheel = p;
     let x, y;
     if (c) {
-      let rect2 = c.getBoundingClientRect();
+      let rect = c.getBoundingClientRect();
       let sx = c.scrollWidth / $.width || 1;
       let sy = c.scrollHeight / $.height || 1;
-      x = (e.clientX - rect2.left) / sx;
-      y = (e.clientY - rect2.top) / sy;
+      x = (e.clientX - rect.left) / sx;
+      y = (e.clientY - rect.top) / sy;
       if ($._webgpu) {
         x -= c.hw;
         y -= c.hh;
@@ -3241,13 +3241,13 @@ Q5.modules.input = ($, q) => {
   };
   $.keyIsDown = (v) => !!keysHeld[typeof v == "string" ? v.toLowerCase() : v];
   function getTouchInfo(touch) {
-    const rect2 = $.canvas.getBoundingClientRect(), sx = $.canvas.scrollWidth / $.width || 1, sy = $.canvas.scrollHeight / $.height || 1;
+    const rect = $.canvas.getBoundingClientRect(), sx = $.canvas.scrollWidth / $.width || 1, sy = $.canvas.scrollHeight / $.height || 1;
     let modX = 0, modY = 0;
     if ($._webgpu) {
       modX = $.halfWidth;
       modY = $.halfHeight;
     }
-    let x = (touch.clientX - rect2.left) / sx - modX, y = (touch.clientY - rect2.top) / sy - modY;
+    let x = (touch.clientX - rect.left) / sx - modX, y = (touch.clientY - rect.top) / sy - modY;
     if (!$._flippedY) y *= -1;
     return {
       x,
@@ -7179,14 +7179,14 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
   let charDataBuffer = new Float32Array(Q5.MAX_CHARS * 4);
   let textDataBuffer = new Float32Array(Q5.MAX_TEXTS * 8);
   let measureText = (font, text, charCallback) => {
-    let maxWidth = 0, offsetX = 0, offsetY = 0, line2 = 0, printedCharCount = 0, nextCharCode = text.charCodeAt(0);
+    let maxWidth = 0, offsetX = 0, offsetY = 0, line = 0, printedCharCount = 0, nextCharCode = text.charCodeAt(0);
     for (let i = 0; i < text.length; ++i) {
       let charCode = nextCharCode;
       nextCharCode = i < text.length - 1 ? text.charCodeAt(i + 1) : -1;
       switch (charCode) {
         case 10:
-          lineWidths[line2] = offsetX;
-          line2++;
+          lineWidths[line] = offsetX;
+          line++;
           maxWidth = Math.max(maxWidth, offsetX);
           offsetX = 0;
           offsetY -= font.lineHeight * leadPercent;
@@ -7201,15 +7201,15 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
           break;
         default:
           if (charCallback) {
-            charCallback(offsetX, offsetY, line2, font.getChar(charCode));
+            charCallback(offsetX, offsetY, line, font.getChar(charCode));
           }
           offsetX += font.getXAdvance(charCode, nextCharCode);
           printedCharCount++;
       }
     }
-    lineWidths[line2] = offsetX;
+    lineWidths[line] = offsetX;
     maxWidth = Math.max(maxWidth, offsetX);
-    let lineCount = line2 + 1;
+    let lineCount = line + 1;
     return {
       width: maxWidth,
       height: lineCount * font.lineHeight * leadPercent,
@@ -7252,7 +7252,7 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
     let charsData = [];
     let ta = _textAlign, tb = _textBaseline, textIndex = textStack.length, o = 0, measurements;
     if (ta == "left" && !hasNewline) {
-      measurements = measureText($._font, str, (textX, textY, line2, char) => {
+      measurements = measureText($._font, str, (textX, textY, line, char) => {
         charsData[o] = textX;
         charsData[o + 1] = -textY;
         charsData[o + 2] = char.charIndex;
@@ -7268,12 +7268,12 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
       if (tb == "alphabetic") y += _textSize * yDir;
       else if (tb == "middle") offsetY = measurements.height * 0.5;
       else if (tb == "bottom") offsetY = measurements.height;
-      measureText($._font, str, (textX, textY, line2, char) => {
+      measureText($._font, str, (textX, textY, line, char) => {
         let offsetX = 0;
         if (ta == "center") {
-          offsetX = measurements.width * -0.5 - (measurements.width - measurements.lineWidths[line2]) * -0.5;
+          offsetX = measurements.width * -0.5 - (measurements.width - measurements.lineWidths[line]) * -0.5;
         } else if (ta == "right") {
-          offsetX = -measurements.lineWidths[line2];
+          offsetX = -measurements.lineWidths[line];
         }
         charsData[o] = textX + offsetX;
         charsData[o + 1] = (textY + offsetY) * yDir;
@@ -8163,8 +8163,8 @@ async def __run(q):
               lines[j] = lines[j].slice(indent.length);
             }
           } else {
-            let line2 = code.split("\n")[lineNum - 1].trim();
-            lines.unshift(line2, "");
+            let line = code.split("\n")[lineNum - 1].trim();
+            lines.unshift(line, "");
           }
           err = lines.join("\n");
           break;
@@ -8260,7 +8260,7 @@ if (typeof document == "object") {
   } else runPython();
 }
 
-// main.js
+// image.js
 console.log("before Canvas");
 var CANVAS_W = 1280;
 var CANVAS_H = 720;
@@ -8270,18 +8270,12 @@ if (window.innerWidth !== CANVAS_W || window.innerHeight !== CANVAS_H) {
   process.exit(1);
 }
 console.log("Canvas ready");
+var screenshot = await loadImage("docs/screenshot.png");
+console.log("type of screenshot: " + typeof screenshot);
 background("#101820");
-noStroke();
-fill("#ff6b6b");
-circle(-280, -120, 180);
-fill("#ffd166");
-rect(-90, -120, 180, 140);
-fill("#4ecdc4");
-triangle(150, 60, 300, -160, 390, 60);
-stroke("#f2f4f3");
-strokeWeight(10);
-line(-440, 180, 440, 180);
-console.log("hello world drawn");
+imageMode(CENTER);
+image(screenshot, 0, 0, 800, 450);
+console.log("image example ready", screenshot.width, screenshot.height);
 /**
  * q5.js
  * @version 4.8

@@ -1251,6 +1251,33 @@ Q5.renderers.c2d.image = ($, q) => {
     } else opt = void 0;
     let g = $.createImage(1, 1, opt);
     let pd = g._pixelDensity;
+    if (typeof window.Image != "function" && typeof createImageBitmap == "function") {
+      g.promise = fetch(url).then((res) => {
+        if (!res.ok) throw new Error(`Failed to load image: ${res.status}`);
+        return createImageBitmap(res);
+      }).then((bitmap) => {
+        delete g.then;
+        g = $.createImage(Math.ceil(bitmap.width / pd), Math.ceil(bitmap.height / pd), opt);
+        g.defaultWidth = bitmap.width * $._defaultImageScale;
+        g.defaultHeight = bitmap.height * $._defaultImageScale;
+        g.naturalWidth = bitmap.width;
+        g.naturalHeight = bitmap.height;
+        g.ctx.putImageData({
+          width: bitmap.width,
+          height: bitmap.height,
+          data: new Uint8Array(bitmap._data)
+        }, 0, 0);
+        bitmap.close?.();
+        if (cb) cb(g);
+        return g;
+      });
+      $._loaders.push(g.promise);
+      g.then = (resolve, reject2) => {
+        g._usedAwait = true;
+        return g.promise.then(resolve, reject2);
+      };
+      return g;
+    }
     let img = new window.Image();
     img.crossOrigin = "Anonymous";
     g.promise = new Promise((resolve, reject2) => {
@@ -8234,7 +8261,13 @@ if (typeof document == "object") {
 }
 
 // mouse.js
-await Canvas(1280, 720);
+var CANVAS_W = 1280;
+var CANVAS_H = 720;
+await Canvas(CANVAS_W, CANVAS_H);
+if (window.innerWidth !== CANVAS_W || window.innerHeight !== CANVAS_H) {
+  console.error(`Canvas/window size mismatch: window is ${window.innerWidth}x${window.innerHeight}, expected ${CANVAS_W}x${CANVAS_H}. Run with --width ${CANVAS_W} --height ${CANVAS_H}.`);
+  process.exit(1);
+}
 var clicked = [];
 var pointerDown = false;
 function draw() {

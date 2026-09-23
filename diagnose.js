@@ -8,7 +8,16 @@ import("./q5.js")
     console.log("diagnose: typeof Q5 = " + typeof Q5);
     console.log("diagnose: typeof window = " + typeof window);
     console.log("diagnose: typeof Canvas = " + typeof Canvas);
-    return Canvas(1280, 720);
+    
+    const CANVAS_W = 1280, CANVAS_H = 720;
+    let canvas = Canvas(CANVAS_W, CANVAS_H);
+
+    if (window.innerWidth !== CANVAS_W || window.innerHeight !== CANVAS_H) {
+      console.error(`Canvas/window size mismatch: window is ${window.innerWidth}x${window.innerHeight}, expected ${CANVAS_W}x${CANVAS_H}. Run with --width ${CANVAS_W} --height ${CANVAS_H}.`);
+      process.exit(1);
+    }
+    
+    return canvas;
   })
   .then(() => {
     console.log("diagnose: Canvas ready");

@@ -1193,6 +1193,33 @@ var init_q5 = __esm({
         } else opt = void 0;
         let g = $.createImage(1, 1, opt);
         let pd = g._pixelDensity;
+        if (typeof window.Image != "function" && typeof createImageBitmap == "function") {
+          g.promise = fetch(url).then((res) => {
+            if (!res.ok) throw new Error(`Failed to load image: ${res.status}`);
+            return createImageBitmap(res);
+          }).then((bitmap) => {
+            delete g.then;
+            g = $.createImage(Math.ceil(bitmap.width / pd), Math.ceil(bitmap.height / pd), opt);
+            g.defaultWidth = bitmap.width * $._defaultImageScale;
+            g.defaultHeight = bitmap.height * $._defaultImageScale;
+            g.naturalWidth = bitmap.width;
+            g.naturalHeight = bitmap.height;
+            g.ctx.putImageData({
+              width: bitmap.width,
+              height: bitmap.height,
+              data: new Uint8Array(bitmap._data)
+            }, 0, 0);
+            bitmap.close?.();
+            if (cb) cb(g);
+            return g;
+          });
+          $._loaders.push(g.promise);
+          g.then = (resolve, reject2) => {
+            g._usedAwait = true;
+            return g.promise.then(resolve, reject2);
+          };
+          return g;
+        }
         let img = new window.Image();
         img.crossOrigin = "Anonymous";
         g.promise = new Promise((resolve, reject2) => {
@@ -8249,14 +8276,20 @@ if (isMystral) {
   }
 }
 
-// diagnose-q5.js
+// diagnose.js
 console.log("diagnose: before q5 import");
 Promise.resolve().then(() => (init_q5(), q5_exports)).then(() => {
   console.log("diagnose: q5 import completed");
   console.log("diagnose: typeof Q5 = " + typeof Q5);
   console.log("diagnose: typeof window = " + typeof window);
   console.log("diagnose: typeof Canvas = " + typeof Canvas);
-  return Canvas(1280, 720);
+  const CANVAS_W = 1280, CANVAS_H = 720;
+  let canvas = Canvas(CANVAS_W, CANVAS_H);
+  if (window.innerWidth !== CANVAS_W || window.innerHeight !== CANVAS_H) {
+    console.error(`Canvas/window size mismatch: window is ${window.innerWidth}x${window.innerHeight}, expected ${CANVAS_W}x${CANVAS_H}. Run with --width ${CANVAS_W} --height ${CANVAS_H}.`);
+    process.exit(1);
+  }
+  return canvas;
 }).then(() => {
   console.log("diagnose: Canvas ready");
   background("#101820");
