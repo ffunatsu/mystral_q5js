@@ -10,6 +10,8 @@ This project also includes a locally modified [q5.js implementation](q5.js) (bas
 
 ( Also includes WebSocket/UDP(OSC)/SharedMemory tests for extension. )
 
+See the [Mystral FFI guide](docs/mystral-ffi.md) for calling Windows DLLs from V8 JavaScript, including the Rust test DLL in [`ffi-test`](ffi-test/).
+
 > [!Note]
 > This project is AI-assisted, using GitHub Copilot.
 
