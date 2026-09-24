@@ -53,7 +53,7 @@ Single GV playback:
 .\mystralnative\build\Release\mystral.exe run bundle-gv.js
 ```
 
-Multi-GV playback uses the file list in [`gvs.js`](gvs.js) and arranges the videos automatically in a grid. Each tile displays the recent video FPS and its target FPS.
+Multi-GV playback:
 
 ```powershell
 .\bundle.ps1 gvs
