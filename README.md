@@ -42,6 +42,26 @@ bash ./bundle.sh image    # macOS
 mystral run bundle-image.js
 ```
 
+## GV video playback
+
+The GV samples use the [Extreme GPU Friendly Video Format](https://github.com/Ushio/ofxExtremeGpuVideo?tab=readme-ov-file#extreme-gpu-friendly-video-format) and the [`rust-gv-video`](https://github.com/ffunatsu/rust-gv-video) decoder with random-access streaming. When the native WebGPU device supports BC texture compression, GV frames are uploaded as their original BC format instead of being expanded to RGBA/BGRA pixels.
+
+Single GV playback:
+
+```powershell
+.\bundle.ps1 gv
+.\mystralnative\build\Release\mystral.exe run bundle-gv.js
+```
+
+Multi-GV playback uses the file list in [`gvs.js`](gvs.js) and arranges the videos automatically in a grid. Each tile displays the recent video FPS and its target FPS.
+
+```powershell
+.\bundle.ps1 gvs
+.\mystralnative\build\Release\mystral.exe run bundle-gvs.js
+```
+
+![Multi-GV playback](docs/gvs_screenshot.png)
+
 ## Mystral Local build
 
 ```bash
