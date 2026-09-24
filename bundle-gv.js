@@ -1958,7 +1958,7 @@ Q52.renderers.c2d.text = ($, q) => {
           let lineWidth = ctx.measureText(line).width;
           if (lineWidth > maxWidth) maxWidth = lineWidth;
         }
-        let imgW = Math.ceil(maxWidth), imgH = Math.ceil(leading * lines.length + descent);
+        let imgW = Math.max(1, Math.ceil(maxWidth)), imgH = Math.max(1, Math.ceil(leading * lines.length + descent));
         img = $.createImage.call($, imgW, imgH, {
           pixelDensity: $._pixelDensity,
           defaultImageScale: 1 / $._pixelDensity
@@ -8831,6 +8831,11 @@ if (!Q5.device || gvQ5._renderer !== "webgpu") {
 }
 await gvQ5.createCanvas(CANVAS_W, CANVAS_H);
 console.log("[GV debug] Canvas ready");
+console.log(
+  `[GV debug] texture-compression-bc=${Boolean(
+    Q5.device?.features?.has?.("texture-compression-bc")
+  )}`
+);
 await initGvWasm({ wasmPath: WASM_PATH, debug: true });
 if (window.innerWidth !== CANVAS_W || window.innerHeight !== CANVAS_H) {
   console.error(

@@ -23,6 +23,11 @@ if (!Q5.device || gvQ5._renderer !== "webgpu") {
 }
 await gvQ5.createCanvas(CANVAS_W, CANVAS_H);
 console.log("[GV debug] Canvas ready");
+console.log(
+  `[GV debug] texture-compression-bc=${Boolean(
+    Q5.device?.features?.has?.("texture-compression-bc")
+  )}`
+);
 await initGvWasm({ wasmPath: WASM_PATH, debug: true });
 
 if (window.innerWidth !== CANVAS_W || window.innerHeight !== CANVAS_H) {
