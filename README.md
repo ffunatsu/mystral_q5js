@@ -74,9 +74,8 @@ Windows (PowerShell):
 git submodule update --init --recursive
 Set-Location mystralnative
 
-C:\vcpkg\vcpkg.exe install curl:x64-windows
+C:\vcpkg\vcpkg.exe install curl:x64-node scripts/download-deps.mjs
 
-# Download the native dependencies. This includes SDL3 and libuv.
 node scripts/download-deps.mjs
 
 cmake -B build `
@@ -97,6 +96,11 @@ cmake --build build --config Release --parallel
 macOS:
 
 ```bash
+git submodule update --init --recursive
+cd mystralnative
+
+node scripts/download-deps.mjs
+
 cmake -B build \
   -DMYSTRAL_USE_V8=ON -DMYSTRAL_USE_QUICKJS=OFF \
   -DMYSTRAL_USE_DAWN=ON -DMYSTRAL_USE_WGPU=OFF \
