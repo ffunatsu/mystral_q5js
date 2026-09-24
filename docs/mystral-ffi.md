@@ -50,16 +50,35 @@ void arduino_close(void* handle);
 
 The code that allocates a native handle should also provide the function that releases it. Do not return memory allocated by one CRT and free it from another module.
 
-## Current supported calls
+## Current support and limitations
 
-The current implementation supports these call shapes:
+The type parser recognizes these scalar and memory types:
 
-- No arguments with `void`, `int`, `size_t`, or `pointer` return values
-- `string, int` arguments with a `pointer` return value
-- `pointer, buffer, size_t` arguments with an `int` return value
-- `pointer` argument with a `void` return value
+- Return types: `void`, `int`, `size_t`, and `pointer`
+- Argument types: `string`, `int`, `size_t`, `float`, `double`, `pointer`, and `buffer`
 
-Other signatures, structures, callbacks, asynchronous calls, and arbitrary C++ APIs are not supported yet.
+However, this first implementation does **not** yet combine those types
+arbitrarily. The native dispatcher currently has these concrete call shapes:
+
+| Return type | Argument types | Example |
+| --- | --- | --- |
+| `void` | none | `void reset()` |
+| `int` | none | `int version()` |
+| `size_t` | none | `size_t count()` |
+| `pointer` | none | `void* create()` |
+| `pointer` | `string`, `int` | `void* connect(const char*, int)` |
+| `int` | `pointer`, `buffer`, `size_t` | `int write(void*, const void*, size_t)` |
+| `void` | `pointer` | `void close(void*)` |
+
+For example, the Rust test's `ffi_test_version()` works because it is the
+`int version()` row above. A declaration such as `function("add", "int",
+["int", "int"])` can be parsed, but calling it currently raises an
+`Unsupported FFI signature` error. Structures, callbacks, asynchronous calls,
+floating-point return values, and arbitrary C++ APIs are not supported yet.
+
+The next step for a truly general FFI is to replace this signature dispatch
+with a call engine such as `libffi` or `dyncall`. Until then, treat the table
+above as the authoritative compatibility list.
 
 ## Rust DLL example
 
