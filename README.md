@@ -76,6 +76,8 @@ Windows (PowerShell):
 ```powershell
 C:\vcpkg\vcpkg.exe install curl:x64-windows
 C:\vcpkg\vcpkg.exe install sdl3:x64-windows
+C:\vcpkg\vcpkg.exe install libuv:x64-windows
+
 cmake -B build `
   -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake `
   -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded `
