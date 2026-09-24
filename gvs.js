@@ -45,6 +45,21 @@ function uploadFrame(item, frame) {
     item.image.pixels.set(frame);
     item.image.updatePixels();
   }
+  recordVideoFrame(item);
+}
+
+function recordVideoFrame(item) {
+  const now = Date.now();
+  item.frameTimes.push(now);
+  while (item.frameTimes.length > 1 && now - item.frameTimes[0] > 2000) {
+    item.frameTimes.shift();
+  }
+  if (item.frameTimes.length >= 2) {
+    const elapsed = now - item.frameTimes[0];
+    item.videoFps = elapsed > 0
+      ? (item.frameTimes.length - 1) * 1000 / elapsed
+      : 0;
+  }
 }
 
 function drawFit(imageObject, metadata, x, y, w, h) {
@@ -75,6 +90,8 @@ const loadPlayer = async (assetPath) => {
     metadata: player.metadata,
     pixelFormat: player.pixelFormat,
     compressed: player.isCompressed,
+    frameTimes: [],
+    videoFps: 0,
   };
   uploadFrame(item, frame);
   return item;
@@ -120,6 +137,17 @@ q5.draw = () => {
     fill("#102635");
     rect(x, y, cellWidth, cellHeight);
     drawFit(item.image, item.metadata, x, y, cellWidth, cellHeight);
+
+    push();
+    noStroke();
+    fill("rgba(0, 0, 0, 0.65)");
+    rect(x + cellWidth - 150, y + 8, 142, 24);
+    fill("#ffffff");
+    textAlign(RIGHT, TOP);
+    textSize(14);
+    const videoFps = item.videoFps > 0 ? item.videoFps.toFixed(1) : "n/a";
+    text(`video ${videoFps} / ${item.metadata.fps} fps`, x + cellWidth - 14, y + 12);
+    pop();
   });
 
   noStroke();

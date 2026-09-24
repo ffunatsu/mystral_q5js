@@ -64,6 +64,22 @@ let appliedFramePromise = null;
 let lastFpsLogFrame = -30;
 let gvUseCompressedTexture = false;
 let gvPixelFormat = "rgba8unorm";
+let gvVideoFps = 0;
+const gvFrameTimes = [];
+
+function recordGvFrame() {
+  const now = Date.now();
+  gvFrameTimes.push(now);
+  while (gvFrameTimes.length > 1 && now - gvFrameTimes[0] > 2000) {
+    gvFrameTimes.shift();
+  }
+  if (gvFrameTimes.length >= 2) {
+    const elapsed = now - gvFrameTimes[0];
+    gvVideoFps = elapsed > 0
+      ? (gvFrameTimes.length - 1) * 1000 / elapsed
+      : 0;
+  }
+}
 
 try {
   console.log("[GV debug] starting GV player load");
@@ -107,6 +123,7 @@ try {
     gvFrameImage.pixels.set(frame);
     gvFrameImage.updatePixels();
   }
+  recordGvFrame();
   console.log(
     `[GV debug] q5 image ready: ${gvFrameImage.width}x${gvFrameImage.height}`
   );
@@ -138,6 +155,7 @@ q5.draw = () => {
           gvFrameImage.pixels.set(frame);
           gvFrameImage.updatePixels();
         }
+        recordGvFrame();
       }).catch((error) => {
         console.warn("GV frame update failed:", error);
       });
@@ -189,6 +207,8 @@ function drawStatusOverlay() {
   const y = -height / 2 + 20;
   const fps = Number.isFinite(frameRate()) ? frameRate().toFixed(1) : "n/a";
   const measuredFps = getFPS();
+  const videoFps = gvVideoFps > 0 ? gvVideoFps.toFixed(1) : "n/a";
+  const targetFps = gvPlayer?.header?.fps ?? "n/a";
   const frame = gvPlayer?.currentFrame ?? "n/a";
   const time = gvPlayer ? gvPlayer.currentTime.toFixed(2) : "n/a";
 
@@ -196,9 +216,10 @@ function drawStatusOverlay() {
   textAlign(LEFT, TOP);
   textSize(18);
   fill("#ffffff");
-  text(`q5 FPS ${fps} (measured ${measuredFps})`, x, y);
-  text(`GV frame ${frame} / ${gvPlayer?.header.frame_count ?? "n/a"}`, x, y + 24);
-  text(`time ${time}s`, x, y + 48);
+  text(`video FPS ${videoFps} / target ${targetFps}`, x, y);
+  text(`q5 FPS ${fps} (measured ${measuredFps})`, x, y + 24);
+  text(`GV frame ${frame} / ${gvPlayer?.header.frame_count ?? "n/a"}`, x, y + 48);
+  text(`time ${time}s`, x, y + 72);
   pop();
 }
 
