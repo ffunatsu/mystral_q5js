@@ -1,6 +1,9 @@
 import "./mystral-shim.js";
 import "./q5.js";
-import { readGvHeaderFromAsset } from "./gv-wasm/loader.mjs";
+import {
+  loadGvVideo,
+  readGvHeaderFromAsset,
+} from "./gv-wasm/loader.mjs";
 
 console.log("GV sample booting");
 
@@ -10,7 +13,12 @@ const ASSET_PATH = "./gv_asset_for_test/alpha-countdown-blue.gv";
 const ASSET_URL = new URL(ASSET_PATH, import.meta.url);
 const WASM_PATH = "./gv-wasm/gv_wasm.wasm";
 
+console.log("[GV debug] asset path:", ASSET_PATH);
+console.log("[GV debug] asset URL:", ASSET_URL.href);
+console.log("[GV debug] wasm path:", WASM_PATH);
+
 await Canvas(CANVAS_W, CANVAS_H);
+console.log("[GV debug] Canvas ready");
 
 if (window.innerWidth !== CANVAS_W || window.innerHeight !== CANVAS_H) {
   console.error(
@@ -38,9 +46,15 @@ const maybeLoadGV = async (path) => {
 };
 
 const gv = await maybeLoadGV(ASSET_PATH);
+console.log("[GV debug] q5 GV loader result:", gv ? Object.keys(gv) : null);
 let gvMetadata = null;
+let gvFrameImage = null;
+let gvPlayer = null;
+let appliedFramePromise = null;
+let lastFpsLogFrame = -30;
 
 try {
+  console.log("[GV debug] starting GV header read");
   gvMetadata = await readGvHeaderFromAsset(ASSET_URL, {
     debug: true,
     wasmPath: WASM_PATH,
@@ -48,16 +62,70 @@ try {
   console.log("GV wasm metadata:", JSON.stringify(gvMetadata, null, 2));
   console.log(`GV asset path: ${ASSET_URL.href}`);
   console.log(`GV wasm path: ${WASM_PATH}`);
+
+  gvPlayer = await loadGvVideo(ASSET_URL, {
+    debug: false,
+    debugFrames: false,
+    wasmPath: WASM_PATH,
+  });
+  gvPlayer.setLoop(true);
+  gvPlayer.play();
+  console.log(
+    `[GV debug] player ready: ${gvPlayer.header.frame_count} frames, ` +
+    `${gvPlayer.duration}s, loop=${gvPlayer.loop}`
+  );
+
+  const frame = await gvPlayer.update();
+  console.log(`[GV debug] decoded RGBA frame bytes: ${frame.byteLength}`);
+
+  gvFrameImage = createImage(gvMetadata.width, gvMetadata.height);
+  gvFrameImage.loadPixels();
+  gvFrameImage.pixels.set(frame);
+  gvFrameImage.updatePixels();
+  console.log(
+    `[GV debug] q5 image ready: ${gvFrameImage.width}x${gvFrameImage.height}`
+  );
 } catch (error) {
-  console.warn("GV WASM metadata unavailable:", error);
+  console.warn("GV WASM metadata unavailable:", error?.message ?? error);
+  console.warn("GV WASM metadata error details:", error?.stack ?? error);
 }
 
 q5.draw = () => {
   background("#09141d");
 
+  if (frameCount - lastFpsLogFrame >= 30) {
+    lastFpsLogFrame = frameCount;
+    console.log(
+      `[GV debug] q5 FPS: ${getFPS()} (frameRate: ${frameRate().toFixed(2)}), ` +
+      `frame=${gvPlayer?.currentFrame ?? "n/a"}, time=${gvPlayer?.currentTime?.toFixed(3) ?? "n/a"}s`
+    );
+  }
+
+  if (gvPlayer && gvFrameImage) {
+    const framePromise = gvPlayer.update();
+    if (framePromise && framePromise !== appliedFramePromise) {
+      appliedFramePromise = framePromise;
+      framePromise.then((frame) => {
+        gvFrameImage.loadPixels();
+        gvFrameImage.pixels.set(frame);
+        gvFrameImage.updatePixels();
+      }).catch((error) => {
+        console.warn("GV frame update failed:", error);
+      });
+    }
+  }
+
   if (gv && gv.texture) {
     imageMode(CENTER);
     image(gv.texture, 0, 0, width, height);
+    drawStatusOverlay();
+    return;
+  }
+
+  if (gvFrameImage) {
+    imageMode(CENTER);
+    image(gvFrameImage, 0, 0, width, height);
+    drawStatusOverlay();
     return;
   }
 
@@ -86,6 +154,24 @@ q5.draw = () => {
     );
   }
 };
+
+function drawStatusOverlay() {
+  const x = -width / 2 + 20;
+  const y = -height / 2 + 20;
+  const fps = Number.isFinite(frameRate()) ? frameRate().toFixed(1) : "n/a";
+  const measuredFps = getFPS();
+  const frame = gvPlayer?.currentFrame ?? "n/a";
+  const time = gvPlayer ? gvPlayer.currentTime.toFixed(2) : "n/a";
+
+  push();
+  textAlign(LEFT, TOP);
+  textSize(18);
+  fill("#ffffff");
+  text(`q5 FPS ${fps} (measured ${measuredFps})`, x, y);
+  text(`GV frame ${frame} / ${gvPlayer?.header.frame_count ?? "n/a"}`, x, y + 24);
+  text(`time ${time}s`, x, y + 48);
+  pop();
+}
 
 if (gv && typeof gv.play === "function") {
   gv.play();

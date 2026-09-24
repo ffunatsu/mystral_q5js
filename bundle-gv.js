@@ -4259,8 +4259,8 @@ Q5.modules.util = ($, q) => {
   $.loadCSV = (url, cb) => $._loadFile(url, cb, "csv");
   $.loadXML = (url, cb) => {
     let ret = {};
-    ret.promise = fetch(url).then((res) => res.text()).then((text) => {
-      let xml = new DOMParser().parseFromString(text, "application/xml");
+    ret.promise = fetch(url).then((res) => res.text()).then((text2) => {
+      let xml = new DOMParser().parseFromString(text2, "application/xml");
       ret.DOM = xml;
       delete ret.then;
       if (cb) cb(xml);
@@ -7178,11 +7178,11 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
   let lineWidths = new Array(100);
   let charDataBuffer = new Float32Array(Q5.MAX_CHARS * 4);
   let textDataBuffer = new Float32Array(Q5.MAX_TEXTS * 8);
-  let measureText = (font, text, charCallback) => {
-    let maxWidth = 0, offsetX = 0, offsetY = 0, line = 0, printedCharCount = 0, nextCharCode = text.charCodeAt(0);
-    for (let i = 0; i < text.length; ++i) {
+  let measureText = (font, text2, charCallback) => {
+    let maxWidth = 0, offsetX = 0, offsetY = 0, line = 0, printedCharCount = 0, nextCharCode = text2.charCodeAt(0);
+    for (let i = 0; i < text2.length; ++i) {
       let charCode = nextCharCode;
-      nextCharCode = i < text.length - 1 ? text.charCodeAt(i + 1) : -1;
+      nextCharCode = i < text2.length - 1 ? text2.charCodeAt(i + 1) : -1;
       switch (charCode) {
         case 10:
           lineWidths[line] = offsetX;
@@ -8308,10 +8308,11 @@ async function readBinaryFromUrl(value) {
   throw new Error("No supported binary loader available in this runtime. Expected fetch() or __readFileSync().");
 }
 var wasmExportsCache = null;
-async function loadGvWasmModule(customPath = null) {
+async function loadGvWasmModule(customPath = null, options = {}) {
   if (wasmExportsCache) {
     return wasmExportsCache;
   }
+  const { debug = false, logger = console } = options;
   const candidates = [];
   if (customPath) {
     candidates.push(toUrl(customPath));
@@ -8320,40 +8321,227 @@ async function loadGvWasmModule(customPath = null) {
   let lastError = null;
   for (const candidate of candidates) {
     try {
+      if (debug && typeof logger?.log === "function") {
+        logger.log(`[gv-wasm] loading module: ${candidate.href}`);
+      }
       const bytes = await readBinaryFromUrl(candidate);
-      const wasm = await WebAssembly.instantiate(bytes, {});
-      wasmExportsCache = wasm.instance.exports;
+      if (debug && typeof logger?.log === "function") {
+        logger.log(`[gv-wasm] module bytes: ${bytes.byteLength}`);
+        logger.log("[gv-wasm] compiling module synchronously");
+      }
+      const module = new WebAssembly.Module(bytes);
+      if (debug && typeof logger?.log === "function") {
+        logger.log("[gv-wasm] module compiled");
+      }
+      const imports = WebAssembly.Module.imports(module);
+      if (debug && typeof logger?.log === "function") {
+        logger.log("[gv-wasm] module imports:", imports);
+      }
+      if (imports.length > 0) {
+        const importNames = imports.map(({ module: module2, name }) => `${module2}.${name}`).join(", ");
+        throw new Error(
+          `GV WASM is not a raw ABI module; it requires imports: ${importNames}. Rebuild gv-wasm without wasm-bindgen glue and copy the new .wasm file to gv-wasm/gv_wasm.wasm.`
+        );
+      }
+      const instance = new WebAssembly.Instance(module, {});
+      wasmExportsCache = instance.exports;
+      if (debug && typeof logger?.log === "function") {
+        logger.log(`[gv-wasm] module instantiated; exports: ${Object.keys(wasmExportsCache).join(", ")}`);
+      }
       return wasmExportsCache;
     } catch (error) {
       lastError = error;
+      if (debug && typeof logger?.warn === "function") {
+        logger.warn(`[gv-wasm] module candidate failed: ${candidate.href}`, error);
+      }
     }
   }
   throw new Error(`Failed to load GV WASM module from any candidate path: ${lastError?.message ?? "unknown error"}`);
 }
 async function readGvHeaderFromBuffer(bytes, options = {}) {
   const { debug = false, logger = console, wasmPath = null } = options;
-  const exports = await loadGvWasmModule(wasmPath);
-  if (!exports || typeof exports.read_gv_header !== "function") {
-    throw new Error("GV WASM exports do not expose read_gv_header");
-  }
-  const header = exports.read_gv_header(bytes);
-  const result = {
-    width: header.width,
-    height: header.height,
-    frame_count: header.frame_count,
-    fps: header.fps,
-    format: header.format,
-    frame_bytes: header.frame_bytes
-  };
   if (debug && typeof logger?.log === "function") {
-    logger.log("[gv-wasm] decoded header:", result);
+    logger.log(`[gv-wasm] header input bytes: ${bytes.byteLength}`);
+    logger.log(`[gv-wasm] requested wasm path: ${wasmPath ?? "(default candidates)"}`);
   }
-  return result;
+  const exports = await loadGvWasmModule(wasmPath, { debug, logger });
+  if (!exports || typeof exports.read_gv_header !== "function" || typeof exports.gv_alloc !== "function" || !exports.memory) {
+    throw new Error("GV WASM exports do not expose the raw GV header ABI");
+  }
+  const inputPtr = exports.gv_alloc(bytes.byteLength);
+  const outputPtr = exports.gv_alloc(24);
+  if (debug && typeof logger?.log === "function") {
+    logger.log(`[gv-wasm] allocated input=${inputPtr}, output=${outputPtr}`);
+  }
+  if (!inputPtr || !outputPtr) {
+    throw new Error("GV WASM allocation failed");
+  }
+  try {
+    new Uint8Array(exports.memory.buffer, inputPtr, bytes.byteLength).set(bytes);
+    if (debug && typeof logger?.log === "function") {
+      logger.log(`[gv-wasm] calling read_gv_header(input=${inputPtr}, length=${bytes.byteLength}, output=${outputPtr})`);
+    }
+    const status = exports.read_gv_header(inputPtr, bytes.byteLength, outputPtr);
+    if (debug && typeof logger?.log === "function") {
+      logger.log(`[gv-wasm] read_gv_header status: ${status}`);
+    }
+    if (status !== 0) {
+      throw new Error(`GV WASM header decode failed with status ${status}`);
+    }
+    const view = new DataView(exports.memory.buffer, outputPtr, 24);
+    const header = {
+      width: view.getUint32(0, true),
+      height: view.getUint32(4, true),
+      frame_count: view.getUint32(8, true),
+      fps: view.getFloat32(12, true),
+      format: view.getUint32(16, true),
+      frame_bytes: view.getUint32(20, true)
+    };
+    if (debug && typeof logger?.log === "function") {
+      logger.log("[gv-wasm] decoded header object:", header);
+    }
+    if (debug && typeof logger?.log === "function") {
+      logger.log("[gv-wasm] decoded header:", header);
+    }
+    return header;
+  } finally {
+    if (typeof exports.gv_dealloc === "function") {
+      exports.gv_dealloc(inputPtr, bytes.byteLength);
+      exports.gv_dealloc(outputPtr, 24);
+    }
+  }
 }
 async function readGvHeaderFromAsset(assetPath, options = {}) {
   const { wasmPath = null } = options;
   const bytes = await readBinaryFromUrl(assetPath);
   return readGvHeaderFromBuffer(bytes, { ...options, wasmPath });
+}
+var GvVideo = class {
+  constructor(bytes, header, wasm, inputPtr, outputPtr, outputCapacity, options = {}) {
+    this.bytes = bytes;
+    this.header = header;
+    this.wasm = wasm;
+    this.inputPtr = inputPtr;
+    this.outputPtr = outputPtr;
+    this.outputCapacity = outputCapacity;
+    this.wasmPath = options.wasmPath ?? null;
+    this.debug = options.debug ?? false;
+    this.debugFrames = options.debugFrames ?? false;
+    this.logger = options.logger ?? console;
+    this.state = "stopped";
+    this.loop = false;
+    this.currentFrame = 0;
+    this.currentTime = 0;
+    this.duration = header.frame_count / header.fps;
+    this._startedAt = 0;
+    this._pendingFrame = null;
+    this._decodedFrame = -1;
+  }
+  play() {
+    if (this.state === "playing") return;
+    this._startedAt = Date.now() - this.currentTime * 1e3;
+    this.state = "playing";
+  }
+  pause() {
+    if (this.state === "playing") this._updateClock();
+    this.state = "paused";
+  }
+  stop() {
+    this.state = "stopped";
+    this.currentTime = 0;
+    this.currentFrame = 0;
+  }
+  seek(seconds) {
+    this.currentTime = Math.max(0, Math.min(Number(seconds) || 0, this.duration));
+    this.currentFrame = Math.min(
+      this.header.frame_count - 1,
+      Math.floor(this.currentTime * this.header.fps)
+    );
+    if (this.state === "playing") {
+      this._startedAt = Date.now() - this.currentTime * 1e3;
+    }
+  }
+  setLoop(value) {
+    this.loop = Boolean(value);
+  }
+  _updateClock() {
+    if (this.state !== "playing") return;
+    let elapsed = (Date.now() - this._startedAt) / 1e3;
+    if (elapsed >= this.duration) {
+      if (this.loop) {
+        elapsed %= this.duration;
+        this._startedAt = Date.now() - elapsed * 1e3;
+      } else {
+        this.currentTime = this.duration;
+        this.currentFrame = this.header.frame_count - 1;
+        this.state = "stopped";
+        return;
+      }
+    }
+    this.currentTime = elapsed;
+    this.currentFrame = Math.min(
+      this.header.frame_count - 1,
+      Math.floor(elapsed * this.header.fps)
+    );
+  }
+  update() {
+    this._updateClock();
+    if (this._pendingFrame || this.currentFrame === this._decodedFrame) {
+      return this._pendingFrame;
+    }
+    const frameIndex = this.currentFrame;
+    this._pendingFrame = Promise.resolve().then(() => {
+      const size = this.wasm.read_gv_frame_rgba(
+        this.inputPtr,
+        this.bytes.byteLength,
+        frameIndex,
+        this.outputPtr,
+        this.outputCapacity
+      );
+      if (this.debugFrames && typeof this.logger?.log === "function") {
+        this.logger.log(`[gv-wasm] RGBA frame ${frameIndex} decode status/size: ${size}`);
+      }
+      if (size < 0) {
+        throw new Error(`GV WASM RGBA frame decode failed with status ${size}`);
+      }
+      return new Uint8Array(this.wasm.memory.buffer, this.outputPtr, size);
+    }).then((frame) => {
+      this._decodedFrame = frameIndex;
+      this._pendingFrame = null;
+      return frame;
+    }, (error) => {
+      this._pendingFrame = null;
+      throw error;
+    });
+    return this._pendingFrame;
+  }
+  close() {
+    if (!this.wasm) return;
+    if (typeof this.wasm.gv_dealloc === "function") {
+      this.wasm.gv_dealloc(this.inputPtr, this.bytes.byteLength);
+      this.wasm.gv_dealloc(this.outputPtr, this.outputCapacity);
+    }
+    this.wasm = null;
+    this.inputPtr = 0;
+    this.outputPtr = 0;
+    this.bytes = null;
+  }
+};
+async function loadGvVideo(assetPath, options = {}) {
+  const bytes = await readBinaryFromUrl(assetPath);
+  const wasm = await loadGvWasmModule(options.wasmPath ?? null, options);
+  const header = await readGvHeaderFromBuffer(bytes, options);
+  if (typeof wasm.read_gv_frame_rgba !== "function" || typeof wasm.gv_alloc !== "function" || !wasm.memory) {
+    throw new Error("GV WASM exports do not expose the persistent RGBA frame ABI");
+  }
+  const outputCapacity = header.width * header.height * 4;
+  const inputPtr = wasm.gv_alloc(bytes.byteLength);
+  const outputPtr = wasm.gv_alloc(outputCapacity);
+  if (!inputPtr || !outputPtr) {
+    throw new Error("GV WASM persistent frame allocation failed");
+  }
+  new Uint8Array(wasm.memory.buffer, inputPtr, bytes.byteLength).set(bytes);
+  return new GvVideo(bytes, header, wasm, inputPtr, outputPtr, outputCapacity, options);
 }
 
 // gv.js
@@ -8363,7 +8551,11 @@ var CANVAS_H = 720;
 var ASSET_PATH = "./gv_asset_for_test/alpha-countdown-blue.gv";
 var ASSET_URL = new URL(ASSET_PATH, import.meta.url);
 var WASM_PATH = "./gv-wasm/gv_wasm.wasm";
+console.log("[GV debug] asset path:", ASSET_PATH);
+console.log("[GV debug] asset URL:", ASSET_URL.href);
+console.log("[GV debug] wasm path:", WASM_PATH);
 await Canvas(CANVAS_W, CANVAS_H);
+console.log("[GV debug] Canvas ready");
 if (window.innerWidth !== CANVAS_W || window.innerHeight !== CANVAS_H) {
   console.error(
     `Canvas/window size mismatch: window is ${window.innerWidth}x${window.innerHeight}, expected ${CANVAS_W}x${CANVAS_H}. Run with --width ${CANVAS_W} --height ${CANVAS_H}.`
@@ -8386,8 +8578,14 @@ var maybeLoadGV = async (path) => {
   return null;
 };
 var gv = await maybeLoadGV(ASSET_PATH);
+console.log("[GV debug] q5 GV loader result:", gv ? Object.keys(gv) : null);
 var gvMetadata = null;
+var gvFrameImage = null;
+var gvPlayer = null;
+var appliedFramePromise = null;
+var lastFpsLogFrame = -30;
 try {
+  console.log("[GV debug] starting GV header read");
   gvMetadata = await readGvHeaderFromAsset(ASSET_URL, {
     debug: true,
     wasmPath: WASM_PATH
@@ -8395,14 +8593,60 @@ try {
   console.log("GV wasm metadata:", JSON.stringify(gvMetadata, null, 2));
   console.log(`GV asset path: ${ASSET_URL.href}`);
   console.log(`GV wasm path: ${WASM_PATH}`);
+  gvPlayer = await loadGvVideo(ASSET_URL, {
+    debug: false,
+    debugFrames: false,
+    wasmPath: WASM_PATH
+  });
+  gvPlayer.setLoop(true);
+  gvPlayer.play();
+  console.log(
+    `[GV debug] player ready: ${gvPlayer.header.frame_count} frames, ${gvPlayer.duration}s, loop=${gvPlayer.loop}`
+  );
+  const frame = await gvPlayer.update();
+  console.log(`[GV debug] decoded RGBA frame bytes: ${frame.byteLength}`);
+  gvFrameImage = createImage(gvMetadata.width, gvMetadata.height);
+  gvFrameImage.loadPixels();
+  gvFrameImage.pixels.set(frame);
+  gvFrameImage.updatePixels();
+  console.log(
+    `[GV debug] q5 image ready: ${gvFrameImage.width}x${gvFrameImage.height}`
+  );
 } catch (error) {
-  console.warn("GV WASM metadata unavailable:", error);
+  console.warn("GV WASM metadata unavailable:", error?.message ?? error);
+  console.warn("GV WASM metadata error details:", error?.stack ?? error);
 }
 q5.draw = () => {
   background("#09141d");
+  if (frameCount - lastFpsLogFrame >= 30) {
+    lastFpsLogFrame = frameCount;
+    console.log(
+      `[GV debug] q5 FPS: ${getFPS()} (frameRate: ${frameRate().toFixed(2)}), frame=${gvPlayer?.currentFrame ?? "n/a"}, time=${gvPlayer?.currentTime?.toFixed(3) ?? "n/a"}s`
+    );
+  }
+  if (gvPlayer && gvFrameImage) {
+    const framePromise = gvPlayer.update();
+    if (framePromise && framePromise !== appliedFramePromise) {
+      appliedFramePromise = framePromise;
+      framePromise.then((frame) => {
+        gvFrameImage.loadPixels();
+        gvFrameImage.pixels.set(frame);
+        gvFrameImage.updatePixels();
+      }).catch((error) => {
+        console.warn("GV frame update failed:", error);
+      });
+    }
+  }
   if (gv && gv.texture) {
     imageMode(CENTER);
     image(gv.texture, 0, 0, width, height);
+    drawStatusOverlay();
+    return;
+  }
+  if (gvFrameImage) {
+    imageMode(CENTER);
+    image(gvFrameImage, 0, 0, width, height);
+    drawStatusOverlay();
     return;
   }
   noStroke();
@@ -8427,6 +8671,22 @@ q5.draw = () => {
     );
   }
 };
+function drawStatusOverlay() {
+  const x = -width / 2 + 20;
+  const y = -height / 2 + 20;
+  const fps = Number.isFinite(frameRate()) ? frameRate().toFixed(1) : "n/a";
+  const measuredFps = getFPS();
+  const frame = gvPlayer?.currentFrame ?? "n/a";
+  const time = gvPlayer ? gvPlayer.currentTime.toFixed(2) : "n/a";
+  push();
+  textAlign(LEFT, TOP);
+  textSize(18);
+  fill("#ffffff");
+  text(`q5 FPS ${fps} (measured ${measuredFps})`, x, y);
+  text(`GV frame ${frame} / ${gvPlayer?.header.frame_count ?? "n/a"}`, x, y + 24);
+  text(`time ${time}s`, x, y + 48);
+  pop();
+}
 if (gv && typeof gv.play === "function") {
   gv.play();
 }

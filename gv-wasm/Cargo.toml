@@ -9,9 +9,7 @@ license = "BSD-3-Clause"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-byteorder = "1"
-lz4_flex = "0.14"
-wasm-bindgen = "0.2"
+gv_video = { package = "gv_video", path = "../refs/rust-gv-video" }
 
 [profile.release]
 lto = true
