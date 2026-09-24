@@ -5,7 +5,7 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
 name="${1:-main}"
-names=(main mouse shader image diagnose)
+names=(main mouse shader image diagnose gv)
 
 bundle() {
   local entry="$1.js"

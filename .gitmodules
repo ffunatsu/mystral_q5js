@@ -1,3 +1,6 @@
 [submodule "mystralnative"]
 	path = mystralnative
 	url = https://github.com/ffunatsu/mystralnative
+[submodule "gv_asset_for_test"]
+	path = gv_asset_for_test
+	url = https://github.com/ffunatsu/gv_asset_for_test/
