@@ -52,6 +52,9 @@ let gvFrameImage = null;
 let gvPlayer = null;
 let appliedFramePromise = null;
 let lastFpsLogFrame = -30;
+const gvPixelFormat = globalThis.Q5?.device
+  ? (globalThis.navigator?.gpu?.getPreferredCanvasFormat?.() ?? "bgra8unorm")
+  : "rgba8unorm";
 
 try {
   console.log("[GV debug] starting GV header read");
@@ -67,6 +70,7 @@ try {
     debug: false,
     debugFrames: false,
     wasmPath: WASM_PATH,
+    pixelFormat: gvPixelFormat,
   });
   gvPlayer.setLoop(true);
   gvPlayer.play();
@@ -76,12 +80,14 @@ try {
   );
 
   const frame = await gvPlayer.update();
-  console.log(`[GV debug] decoded RGBA frame bytes: ${frame.byteLength}`);
+  console.log(`[GV debug] decoded ${gvPixelFormat} frame bytes: ${frame.byteLength}`);
 
   gvFrameImage = createImage(gvMetadata.width, gvMetadata.height);
-  gvFrameImage.loadPixels();
-  gvFrameImage.pixels.set(frame);
-  gvFrameImage.updatePixels();
+  if (!gvFrameImage.setExternalPixels?.(frame, gvPixelFormat)) {
+    gvFrameImage.loadPixels();
+    gvFrameImage.pixels.set(frame);
+    gvFrameImage.updatePixels();
+  }
   console.log(
     `[GV debug] q5 image ready: ${gvFrameImage.width}x${gvFrameImage.height}`
   );
@@ -106,9 +112,11 @@ q5.draw = () => {
     if (framePromise && framePromise !== appliedFramePromise) {
       appliedFramePromise = framePromise;
       framePromise.then((frame) => {
-        gvFrameImage.loadPixels();
-        gvFrameImage.pixels.set(frame);
-        gvFrameImage.updatePixels();
+        if (!gvFrameImage.setExternalPixels?.(frame, gvPixelFormat)) {
+          gvFrameImage.loadPixels();
+          gvFrameImage.pixels.set(frame);
+          gvFrameImage.updatePixels();
+        }
       }).catch((error) => {
         console.warn("GV frame update failed:", error);
       });

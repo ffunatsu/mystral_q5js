@@ -6693,6 +6693,25 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
     let g = $._g.createImage(w, h, opt);
     $._makeDrawable(g);
     g.modified = true;
+    g.setExternalPixels = (data, format = CANVAS_FORMAT) => {
+      if (!g._texture || !data) return false;
+      if (format !== CANVAS_FORMAT) {
+        throw new Error(`External pixel format ${format} does not match canvas format ${CANVAS_FORMAT}`);
+      }
+      const bytesPerRow = g.width * 4;
+      if (bytesPerRow % 256 !== 0) {
+        throw new Error(`External pixel row pitch must be 256-byte aligned: ${bytesPerRow}`);
+      }
+      Q5.device.queue.writeTexture(
+        { texture: g._texture },
+        data,
+        { bytesPerRow, rowsPerImage: g.height },
+        [g.width, g.height, 1]
+      );
+      g.modified = false;
+      g.frameCount++;
+      return true;
+    };
     return g;
   };
   let _createGraphics = $.createGraphics;
@@ -8424,6 +8443,7 @@ var GvVideo = class {
     this.inputPtr = inputPtr;
     this.outputPtr = outputPtr;
     this.outputCapacity = outputCapacity;
+    this.pixelFormat = options.pixelFormat ?? "bgra8unorm";
     this.wasmPath = options.wasmPath ?? null;
     this.debug = options.debug ?? false;
     this.debugFrames = options.debugFrames ?? false;
@@ -8491,7 +8511,8 @@ var GvVideo = class {
     }
     const frameIndex = this.currentFrame;
     this._pendingFrame = Promise.resolve().then(() => {
-      const size = this.wasm.read_gv_frame_rgba(
+      const decode = this.pixelFormat === "bgra8unorm" ? this.wasm.read_gv_frame_bgra : this.wasm.read_gv_frame_rgba;
+      const size = decode(
         this.inputPtr,
         this.bytes.byteLength,
         frameIndex,
@@ -8531,7 +8552,9 @@ async function loadGvVideo(assetPath, options = {}) {
   const bytes = await readBinaryFromUrl(assetPath);
   const wasm = await loadGvWasmModule(options.wasmPath ?? null, options);
   const header = await readGvHeaderFromBuffer(bytes, options);
-  if (typeof wasm.read_gv_frame_rgba !== "function" || typeof wasm.gv_alloc !== "function" || !wasm.memory) {
+  const pixelFormat = options.pixelFormat ?? "bgra8unorm";
+  const frameExport = pixelFormat === "bgra8unorm" ? wasm.read_gv_frame_bgra : wasm.read_gv_frame_rgba;
+  if (typeof frameExport !== "function" || typeof wasm.gv_alloc !== "function" || !wasm.memory) {
     throw new Error("GV WASM exports do not expose the persistent RGBA frame ABI");
   }
   const outputCapacity = header.width * header.height * 4;
@@ -8541,7 +8564,10 @@ async function loadGvVideo(assetPath, options = {}) {
     throw new Error("GV WASM persistent frame allocation failed");
   }
   new Uint8Array(wasm.memory.buffer, inputPtr, bytes.byteLength).set(bytes);
-  return new GvVideo(bytes, header, wasm, inputPtr, outputPtr, outputCapacity, options);
+  return new GvVideo(bytes, header, wasm, inputPtr, outputPtr, outputCapacity, {
+    ...options,
+    pixelFormat
+  });
 }
 
 // gv.js
@@ -8584,6 +8610,7 @@ var gvFrameImage = null;
 var gvPlayer = null;
 var appliedFramePromise = null;
 var lastFpsLogFrame = -30;
+var gvPixelFormat = globalThis.navigator?.gpu?.getPreferredCanvasFormat?.() ?? "rgba8unorm";
 try {
   console.log("[GV debug] starting GV header read");
   gvMetadata = await readGvHeaderFromAsset(ASSET_URL, {
@@ -8596,7 +8623,8 @@ try {
   gvPlayer = await loadGvVideo(ASSET_URL, {
     debug: false,
     debugFrames: false,
-    wasmPath: WASM_PATH
+    wasmPath: WASM_PATH,
+    pixelFormat: gvPixelFormat
   });
   gvPlayer.setLoop(true);
   gvPlayer.play();
@@ -8604,11 +8632,13 @@ try {
     `[GV debug] player ready: ${gvPlayer.header.frame_count} frames, ${gvPlayer.duration}s, loop=${gvPlayer.loop}`
   );
   const frame = await gvPlayer.update();
-  console.log(`[GV debug] decoded RGBA frame bytes: ${frame.byteLength}`);
+  console.log(`[GV debug] decoded ${gvPixelFormat} frame bytes: ${frame.byteLength}`);
   gvFrameImage = createImage(gvMetadata.width, gvMetadata.height);
-  gvFrameImage.loadPixels();
-  gvFrameImage.pixels.set(frame);
-  gvFrameImage.updatePixels();
+  if (!gvFrameImage.setExternalPixels?.(frame, gvPixelFormat)) {
+    gvFrameImage.loadPixels();
+    gvFrameImage.pixels.set(frame);
+    gvFrameImage.updatePixels();
+  }
   console.log(
     `[GV debug] q5 image ready: ${gvFrameImage.width}x${gvFrameImage.height}`
   );
@@ -8629,9 +8659,11 @@ q5.draw = () => {
     if (framePromise && framePromise !== appliedFramePromise) {
       appliedFramePromise = framePromise;
       framePromise.then((frame) => {
-        gvFrameImage.loadPixels();
-        gvFrameImage.pixels.set(frame);
-        gvFrameImage.updatePixels();
+        if (!gvFrameImage.setExternalPixels?.(frame, gvPixelFormat)) {
+          gvFrameImage.loadPixels();
+          gvFrameImage.pixels.set(frame);
+          gvFrameImage.updatePixels();
+        }
       }).catch((error) => {
         console.warn("GV frame update failed:", error);
       });

@@ -8025,6 +8025,25 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
 		$._makeDrawable(g);
 		// assume the user will draw to the image canvas
 		g.modified = true;
+		g.setExternalPixels = (data, format = CANVAS_FORMAT) => {
+			if (!g._texture || !data) return false;
+			if (format !== CANVAS_FORMAT) {
+				throw new Error(`External pixel format ${format} does not match canvas format ${CANVAS_FORMAT}`);
+			}
+			const bytesPerRow = g.width * 4;
+			if (bytesPerRow % 256 !== 0) {
+				throw new Error(`External pixel row pitch must be 256-byte aligned: ${bytesPerRow}`);
+			}
+			Q5.device.queue.writeTexture(
+				{ texture: g._texture },
+				data,
+				{ bytesPerRow, rowsPerImage: g.height },
+				[g.width, g.height, 1]
+			);
+			g.modified = false;
+			g.frameCount++;
+			return true;
+		};
 		return g;
 	};
 

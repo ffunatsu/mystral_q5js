@@ -95,6 +95,33 @@ pub unsafe extern "C" fn read_gv_frame_rgba(
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn read_gv_frame_bgra(
+    input_ptr: *const u8,
+    input_len: usize,
+    frame_index: u32,
+    output_ptr: *mut u8,
+    output_capacity: usize,
+) -> i32 {
+    if input_ptr.is_null() || output_ptr.is_null() {
+        return -1;
+    }
+
+    let bytes = std::slice::from_raw_parts(input_ptr, input_len);
+    let mut video = GVVideo::load(Cursor::new(bytes));
+    let frame = match video.read_frame(frame_index) {
+        Ok(frame) => frame,
+        Err(_) => return -2,
+    };
+    let bgra = gv_video::get_bgra_vec_from_frame(frame);
+    if bgra.len() > output_capacity {
+        return -3;
+    }
+
+    std::slice::from_raw_parts_mut(output_ptr, bgra.len()).copy_from_slice(&bgra);
+    bgra.len() as i32
+}
+
+#[no_mangle]
 pub extern "C" fn gv_is_supported_format(format: u32) -> bool {
     matches!(format, 1 | 3 | 5 | 7)
 }

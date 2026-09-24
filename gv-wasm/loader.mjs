@@ -275,6 +275,7 @@ export class GvVideo {
     this.inputPtr = inputPtr;
     this.outputPtr = outputPtr;
     this.outputCapacity = outputCapacity;
+    this.pixelFormat = options.pixelFormat ?? 'bgra8unorm';
     this.wasmPath = options.wasmPath ?? null;
     this.debug = options.debug ?? false;
     this.debugFrames = options.debugFrames ?? false;
@@ -350,7 +351,10 @@ export class GvVideo {
 
     const frameIndex = this.currentFrame;
     this._pendingFrame = Promise.resolve().then(() => {
-      const size = this.wasm.read_gv_frame_rgba(
+      const decode = this.pixelFormat === 'bgra8unorm'
+        ? this.wasm.read_gv_frame_bgra
+        : this.wasm.read_gv_frame_rgba;
+      const size = decode(
         this.inputPtr,
         this.bytes.byteLength,
         frameIndex,
@@ -393,7 +397,11 @@ export async function loadGvVideo(assetPath, options = {}) {
   const bytes = await readBinaryFromUrl(assetPath);
   const wasm = await loadGvWasmModule(options.wasmPath ?? null, options);
   const header = await readGvHeaderFromBuffer(bytes, options);
-  if (typeof wasm.read_gv_frame_rgba !== 'function' ||
+  const pixelFormat = options.pixelFormat ?? 'bgra8unorm';
+  const frameExport = pixelFormat === 'bgra8unorm'
+    ? wasm.read_gv_frame_bgra
+    : wasm.read_gv_frame_rgba;
+  if (typeof frameExport !== 'function' ||
       typeof wasm.gv_alloc !== 'function' || !wasm.memory) {
     throw new Error('GV WASM exports do not expose the persistent RGBA frame ABI');
   }
@@ -406,7 +414,10 @@ export async function loadGvVideo(assetPath, options = {}) {
   }
 
   new Uint8Array(wasm.memory.buffer, inputPtr, bytes.byteLength).set(bytes);
-  return new GvVideo(bytes, header, wasm, inputPtr, outputPtr, outputCapacity, options);
+  return new GvVideo(bytes, header, wasm, inputPtr, outputPtr, outputCapacity, {
+    ...options,
+    pixelFormat,
+  });
 }
 
 export function gvWasmModulePath() {
