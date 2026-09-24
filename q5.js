@@ -9169,6 +9169,7 @@ Q5._requestGPU = async () => {
 		Q5.MAX_TEXTS = min(Q5.MAX_TEXTS, floor(maxStorage / 32));
 
 		device.lost.then((e) => {
+			if (!e || (e.reason === undefined && e.message === undefined)) return;
 			console.error('WebGPU crashed!');
 			console.error(e);
 		});

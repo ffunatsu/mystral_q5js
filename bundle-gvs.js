@@ -8816,177 +8816,114 @@ async function loadGvVideo(assetPath, options = {}) {
   });
 }
 
-// gv.js
-console.log("GV sample booting");
+// gvs.js
+console.log("GVS sample booting");
 var CANVAS_W = 1280;
 var CANVAS_H = 720;
-var ASSET_PATH = "./gv_asset_for_test/alpha-countdown-blue.gv";
-var ASSET_URL = new URL(ASSET_PATH, import.meta.url);
 var WASM_PATH = "./gv-wasm/gv_wasm.wasm";
-console.log("[GV debug] asset path:", ASSET_PATH);
-console.log("[GV debug] asset URL:", ASSET_URL.href);
-console.log("[GV debug] wasm path:", WASM_PATH);
+var ASSET_PATHS = [
+  "./gv_assets_for_test/alpha-countdown-blue.gv",
+  "./gv_assets_for_test/alpha-countdown-green.gv",
+  "./gv_assets_for_test/alpha-countdown-red.gv",
+  "./gv_assets_for_test/alpha-countdown-yellow.gv",
+  "./gv_assets_for_test/alpha-countdown.gv"
+];
 var gvQ5 = await Q5.WebGPU();
 if (!Q5.device || gvQ5._renderer !== "webgpu") {
-  throw new Error("GV sample requires a WebGPU renderer");
+  throw new Error("GVS sample requires a WebGPU renderer");
 }
 await gvQ5.createCanvas(CANVAS_W, CANVAS_H);
-console.log("[GV debug] Canvas ready");
-console.log(
-  `[GV debug] texture-compression-bc=${Boolean(
-    Q5.device?.features?.has?.("texture-compression-bc")
-  )}`
+var supportsCompressedTextures = Boolean(
+  Q5.device?.features?.has?.("texture-compression-bc")
 );
+var outputFormat = navigator.gpu?.getPreferredCanvasFormat?.() ?? "bgra8unorm";
+console.log(`[GVS debug] assets=${ASSET_PATHS.length}`);
+console.log(`[GVS debug] texture-compression-bc=${supportsCompressedTextures}`);
 await initGvWasm({ wasmPath: WASM_PATH, debug: true });
-if (window.innerWidth !== CANVAS_W || window.innerHeight !== CANVAS_H) {
-  console.error(
-    `Canvas/window size mismatch: window is ${window.innerWidth}x${window.innerHeight}, expected ${CANVAS_W}x${CANVAS_H}. Run with --width ${CANVAS_W} --height ${CANVAS_H}.`
-  );
-  if (typeof process !== "undefined" && typeof process.exit === "function") {
-    process.exit(1);
+var columns = Math.max(1, Math.ceil(Math.sqrt(ASSET_PATHS.length)));
+var rows = Math.max(1, Math.ceil(ASSET_PATHS.length / columns));
+var cellWidth = CANVAS_W / columns;
+var cellHeight = CANVAS_H / rows;
+var players = [];
+var lastFpsLogFrame = -30;
+var appliedFramePromises = /* @__PURE__ */ new Map();
+function uploadFrame(item, frame) {
+  if (item.compressed) {
+    item.image.setCompressedPixels(frame);
+  } else if (!item.image.setExternalPixels?.(frame, item.pixelFormat)) {
+    item.image.loadPixels();
+    item.image.pixels.set(frame);
+    item.image.updatePixels();
   }
 }
-var maybeLoadGV = async (path) => {
-  const candidates = [
-    globalThis.loadGV,
-    globalThis.q5?.loadGV,
-    globalThis.Q5?.loadGV
-  ];
-  for (const fn of candidates) {
-    if (typeof fn === "function") {
-      return await fn(path);
-    }
-  }
-  return null;
-};
-var gv = await maybeLoadGV(ASSET_PATH);
-console.log("[GV debug] q5 GV loader result:", gv ? Object.keys(gv) : null);
-var gvMetadata = null;
-var gvFrameImage = null;
-var gvPlayer = null;
-var appliedFramePromise = null;
-var lastFpsLogFrame = -30;
-var gvUseCompressedTexture = false;
-var gvPixelFormat = "rgba8unorm";
-try {
-  console.log("[GV debug] starting GV player load");
-  gvPlayer = await loadGvVideo(ASSET_URL, {
+function drawFit(imageObject, metadata, x, y, w, h) {
+  const scale = Math.min(w / metadata.width, h / metadata.height);
+  const drawWidth = metadata.width * scale;
+  const drawHeight = metadata.height * scale;
+  image(imageObject, x + (w - drawWidth) / 2, y + (h - drawHeight) / 2, drawWidth, drawHeight);
+}
+var loadPlayer = async (assetPath) => {
+  const player = await loadGvVideo(new URL(assetPath, import.meta.url), {
     debug: true,
-    supportsCompressedTextures: Boolean(
-      globalThis.Q5?.device?.features?.has?.("texture-compression-bc")
-    ),
-    outputFormat: globalThis.Q5?.device ? globalThis.navigator?.gpu?.getPreferredCanvasFormat?.() ?? "bgra8unorm" : "rgba8unorm"
+    supportsCompressedTextures,
+    outputFormat
   });
-  gvMetadata = gvPlayer.metadata;
-  gvUseCompressedTexture = gvPlayer.isCompressed;
-  gvPixelFormat = gvPlayer.pixelFormat;
-  console.log("GV wasm metadata:", JSON.stringify(gvMetadata, null, 2));
-  console.log(`GV asset path: ${ASSET_URL.href}`);
-  console.log(`GV wasm path: ${WASM_PATH}`);
+  if (!player) throw new Error(`Failed to load GV: ${assetPath}`);
+  player.setLoop(true);
+  player.play();
+  const frame = await player.update();
+  const imageObject = player.isCompressed ? createCompressedImage(player.metadata.width, player.metadata.height, player.pixelFormat) : createImage(player.metadata.width, player.metadata.height);
+  const item = {
+    assetPath,
+    player,
+    image: imageObject,
+    metadata: player.metadata,
+    pixelFormat: player.pixelFormat,
+    compressed: player.isCompressed
+  };
+  uploadFrame(item, frame);
+  return item;
+};
+var loadedPlayers = await Promise.all(ASSET_PATHS.map(loadPlayer));
+players.push(...loadedPlayers);
+console.log(`[GVS debug] grid=${columns}x${rows}, players=${players.length}`);
+for (const item of players) {
   console.log(
-    `[GV debug] player mode=${gvPlayer.mode}, pixelFormat=${gvPlayer.pixelFormat}, compressed=${gvPlayer.isCompressed}`
+    `[GVS debug] ready ${item.assetPath}: ${item.metadata.width}x${item.metadata.height}, pixelFormat=${item.pixelFormat}, compressed=${item.compressed}`
   );
-  gvPlayer.setLoop(true);
-  gvPlayer.play();
-  console.log(
-    `[GV debug] player ready: ${gvPlayer.header.frame_count} frames, ${gvPlayer.duration}s, loop=${gvPlayer.loop}`
-  );
-  const frame = await gvPlayer.update();
-  console.log(`[GV debug] decoded ${gvPixelFormat} frame bytes: ${frame.byteLength}`);
-  gvFrameImage = gvUseCompressedTexture ? createCompressedImage(gvMetadata.width, gvMetadata.height, gvPixelFormat) : createImage(gvMetadata.width, gvMetadata.height);
-  if (gvUseCompressedTexture) {
-    gvFrameImage.setCompressedPixels(frame);
-  } else if (!gvFrameImage.setExternalPixels?.(frame, gvPixelFormat)) {
-    gvFrameImage.loadPixels();
-    gvFrameImage.pixels.set(frame);
-    gvFrameImage.updatePixels();
-  }
-  console.log(
-    `[GV debug] q5 image ready: ${gvFrameImage.width}x${gvFrameImage.height}`
-  );
-} catch (error) {
-  console.warn("GV WASM metadata unavailable:", error?.message ?? error);
-  console.warn("GV WASM metadata error details:", error?.stack ?? error);
 }
 q5.draw = () => {
   background("#09141d");
+  imageMode(CORNER);
   if (frameCount - lastFpsLogFrame >= 30) {
     lastFpsLogFrame = frameCount;
     console.log(
-      `[GV debug] q5 FPS: ${getFPS()} (frameRate: ${frameRate().toFixed(2)}), frame=${gvPlayer?.currentFrame ?? "n/a"}, time=${gvPlayer?.currentTime?.toFixed(3) ?? "n/a"}s`
+      `[GVS debug] q5 FPS: ${getFPS()} (frameRate: ${frameRate().toFixed(2)}), players=${players.length}`
     );
   }
-  if (gvPlayer && gvFrameImage) {
-    const framePromise = gvPlayer.update();
-    if (framePromise && framePromise !== appliedFramePromise) {
-      appliedFramePromise = framePromise;
-      framePromise.then((frame) => {
-        if (gvUseCompressedTexture) {
-          gvFrameImage.setCompressedPixels(frame);
-        } else if (!gvFrameImage.setExternalPixels?.(frame, gvPixelFormat)) {
-          gvFrameImage.loadPixels();
-          gvFrameImage.pixels.set(frame);
-          gvFrameImage.updatePixels();
-        }
-      }).catch((error) => {
-        console.warn("GV frame update failed:", error);
+  players.forEach((item, index) => {
+    const framePromise = item.player.update();
+    if (framePromise && framePromise !== appliedFramePromises.get(item)) {
+      appliedFramePromises.set(item, framePromise);
+      framePromise.then((frame) => uploadFrame(item, frame)).catch((error) => {
+        console.warn(`[GVS] frame update failed: ${item.assetPath}`, error);
       });
     }
-  }
-  if (gv && gv.texture) {
-    imageMode(CENTER);
-    image(gv.texture, 0, 0, width, height);
-    drawStatusOverlay();
-    return;
-  }
-  if (gvFrameImage) {
-    imageMode(CENTER);
-    image(gvFrameImage, 0, 0, width, height);
-    drawStatusOverlay();
-    return;
-  }
+    const column = index % columns;
+    const row = Math.floor(index / columns);
+    const x = -width / 2 + column * cellWidth;
+    const y = -height / 2 + row * cellHeight;
+    noStroke();
+    fill("#102635");
+    rect(x, y, cellWidth, cellHeight);
+    drawFit(item.image, item.metadata, x, y, cellWidth, cellHeight);
+  });
   noStroke();
-  rectMode(CENTER);
-  fill("#0d1d2a");
-  rect(0, 0, width, height);
-  fill("#8ad0ff");
-  rect(0, 0, width * 0.64, height * 0.56);
-  fill("#dff7ff");
-  rect(0, -height * 0.18, width * 0.6, 6);
-  if (gvMetadata) {
-    console.log(
-      "GV fallback debug:",
-      JSON.stringify({
-        asset: ASSET_PATH,
-        width: gvMetadata.width,
-        height: gvMetadata.height,
-        frame_count: gvMetadata.frame_count,
-        fps: gvMetadata.fps,
-        format: gvMetadata.format
-      })
-    );
-  }
-};
-function drawStatusOverlay() {
-  const x = -width / 2 + 20;
-  const y = -height / 2 + 20;
-  const fps = Number.isFinite(frameRate()) ? frameRate().toFixed(1) : "n/a";
-  const measuredFps = getFPS();
-  const frame = gvPlayer?.currentFrame ?? "n/a";
-  const time = gvPlayer ? gvPlayer.currentTime.toFixed(2) : "n/a";
-  push();
-  textAlign(LEFT, TOP);
-  textSize(18);
   fill("#ffffff");
-  text(`q5 FPS ${fps} (measured ${measuredFps})`, x, y);
-  text(`GV frame ${frame} / ${gvPlayer?.header.frame_count ?? "n/a"}`, x, y + 24);
-  text(`time ${time}s`, x, y + 48);
-  pop();
-}
-if (gv && typeof gv.play === "function") {
-  gv.play();
-}
-console.log("GV sample ready");
+  textSize(18);
+  textAlign(CENTER, TOP);
+  text(`FPS: ${frameRate().toFixed(1)}`, 0, -height / 2 + 8);
+};
 /**
  * q5.js
  * @version 4.8
