@@ -64,19 +64,16 @@ Multi-GV playback:
 
 ## Mystral Local build
 
-```bash
-git submodule update --init --recursive
-cd mystralnative
-# make sure unzip and 7z commands available on PATH
-node scripts/download-deps.mjs
-```
-
 Windows (PowerShell):
 
 ```powershell
+git submodule update --init --recursive
+Set-Location mystralnative
+
 C:\vcpkg\vcpkg.exe install curl:x64-windows
-C:\vcpkg\vcpkg.exe install sdl3:x64-windows
-C:\vcpkg\vcpkg.exe install libuv:x64-windows
+
+# Download the native dependencies. This includes SDL3 and libuv.
+node scripts/download-deps.mjs
 
 cmake -B build `
   -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake `
@@ -85,6 +82,12 @@ cmake -B build `
   -DMYSTRAL_USE_DAWN=ON -DMYSTRAL_USE_WGPU=OFF `
   -DMYSTRAL_USE_SWC=OFF
 cmake --build build --config Release --parallel
+
+# If still shows SDL/SDL.h not found, then
+
+# node scripts/download-deps.mjs --only sdl3 --force
+
+# and retry
 ```
 
 macOS:
