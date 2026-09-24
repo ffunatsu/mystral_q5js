@@ -91,6 +91,6 @@ cd ffi-test
 The example uses a relative DLL path and should report:
 
 ```text
-{"apiVersion":1,"written":3}
+{"apiVersion":1,"sum":42,"doubleSum":4,"written":3}
 [ffi-test] test passed
 ```
