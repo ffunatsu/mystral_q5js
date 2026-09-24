@@ -10,6 +10,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 gv_video = { package = "gv_video", path = "../refs/rust-gv-video" }
+lz4_flex = "0.11"
 
 [profile.release]
 lto = true

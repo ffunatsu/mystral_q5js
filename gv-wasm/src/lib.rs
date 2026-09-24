@@ -1,4 +1,4 @@
-use gv_video::GVVideo;
+use gv_video::{decode_lz4_and_dxt_frame, get_bgra_vec_from_frame, get_rgba_vec_from_frame, GVFormat, GVVideo};
 use std::io::Cursor;
 
 #[no_mangle]
@@ -65,6 +65,91 @@ pub unsafe extern "C" fn read_gv_frame_compressed(
 
     std::slice::from_raw_parts_mut(output_ptr, frame.len()).copy_from_slice(&frame);
     frame.len() as i32
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn read_gv_compressed_frame_data(
+    input_ptr: *const u8,
+    input_len: usize,
+    output_ptr: *mut u8,
+    output_capacity: usize,
+) -> i32 {
+    if input_ptr.is_null() || output_ptr.is_null() {
+        return -1;
+    }
+
+    let bytes = std::slice::from_raw_parts(input_ptr, input_len);
+    let frame = match lz4_flex::block::decompress(bytes, output_capacity) {
+        Ok(frame) => frame,
+        Err(_) => return -2,
+    };
+    if frame.len() > output_capacity {
+        return -3;
+    }
+
+    std::slice::from_raw_parts_mut(output_ptr, frame.len()).copy_from_slice(&frame);
+    frame.len() as i32
+}
+
+unsafe fn read_gv_decoded_frame_data(
+    input_ptr: *const u8,
+    input_len: usize,
+    format: u32,
+    width: u32,
+    height: u32,
+    output_ptr: *mut u8,
+    output_capacity: usize,
+    bgra: bool,
+) -> i32 {
+    if input_ptr.is_null() || output_ptr.is_null() {
+        return -1;
+    }
+
+    let format = match format {
+        1 => GVFormat::DXT1,
+        3 => GVFormat::DXT3,
+        5 => GVFormat::DXT5,
+        7 => GVFormat::BC7,
+        _ => return -2,
+    };
+    let bytes = std::slice::from_raw_parts(input_ptr, input_len);
+    let frame = decode_lz4_and_dxt_frame(format, width as usize, height as usize, bytes);
+    let pixels = if bgra {
+        get_bgra_vec_from_frame(frame)
+    } else {
+        get_rgba_vec_from_frame(&frame)
+    };
+    if pixels.len() > output_capacity {
+        return -3;
+    }
+    std::slice::from_raw_parts_mut(output_ptr, pixels.len()).copy_from_slice(&pixels);
+    pixels.len() as i32
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn read_gv_frame_bgra_data(
+    input_ptr: *const u8,
+    input_len: usize,
+    format: u32,
+    width: u32,
+    height: u32,
+    output_ptr: *mut u8,
+    output_capacity: usize,
+) -> i32 {
+    read_gv_decoded_frame_data(input_ptr, input_len, format, width, height, output_ptr, output_capacity, true)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn read_gv_frame_rgba_data(
+    input_ptr: *const u8,
+    input_len: usize,
+    format: u32,
+    width: u32,
+    height: u32,
+    output_ptr: *mut u8,
+    output_capacity: usize,
+) -> i32 {
+    read_gv_decoded_frame_data(input_ptr, input_len, format, width, height, output_ptr, output_capacity, false)
 }
 
 #[no_mangle]

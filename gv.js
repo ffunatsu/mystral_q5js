@@ -1,8 +1,8 @@
 import "./mystral-shim.js";
 import "./q5.js";
 import {
+  initGvWasm,
   loadGvVideo,
-  readGvHeaderFromAsset,
 } from "./gv-wasm/loader.mjs";
 
 console.log("GV sample booting");
@@ -17,8 +17,13 @@ console.log("[GV debug] asset path:", ASSET_PATH);
 console.log("[GV debug] asset URL:", ASSET_URL.href);
 console.log("[GV debug] wasm path:", WASM_PATH);
 
-await Canvas(CANVAS_W, CANVAS_H);
+const gvQ5 = await Q5.WebGPU();
+if (!Q5.device || gvQ5._renderer !== "webgpu") {
+  throw new Error("GV sample requires a WebGPU renderer");
+}
+await gvQ5.createCanvas(CANVAS_W, CANVAS_H);
 console.log("[GV debug] Canvas ready");
+await initGvWasm({ wasmPath: WASM_PATH, debug: true });
 
 if (window.innerWidth !== CANVAS_W || window.innerHeight !== CANVAS_H) {
   console.error(
@@ -52,26 +57,31 @@ let gvFrameImage = null;
 let gvPlayer = null;
 let appliedFramePromise = null;
 let lastFpsLogFrame = -30;
-const gvPixelFormat = globalThis.Q5?.device
-  ? (globalThis.navigator?.gpu?.getPreferredCanvasFormat?.() ?? "bgra8unorm")
-  : "rgba8unorm";
+let gvUseCompressedTexture = false;
+let gvPixelFormat = "rgba8unorm";
 
 try {
-  console.log("[GV debug] starting GV header read");
-  gvMetadata = await readGvHeaderFromAsset(ASSET_URL, {
+  console.log("[GV debug] starting GV player load");
+  gvPlayer = await loadGvVideo(ASSET_URL, {
     debug: true,
-    wasmPath: WASM_PATH,
+    supportsCompressedTextures: Boolean(
+      globalThis.Q5?.device?.features?.has?.("texture-compression-bc")
+    ),
+    outputFormat: globalThis.Q5?.device
+      ? (globalThis.navigator?.gpu?.getPreferredCanvasFormat?.() ?? "bgra8unorm")
+      : "rgba8unorm",
   });
+  gvMetadata = gvPlayer.metadata;
+  gvUseCompressedTexture = gvPlayer.isCompressed;
+  gvPixelFormat = gvPlayer.pixelFormat;
   console.log("GV wasm metadata:", JSON.stringify(gvMetadata, null, 2));
   console.log(`GV asset path: ${ASSET_URL.href}`);
   console.log(`GV wasm path: ${WASM_PATH}`);
-
-  gvPlayer = await loadGvVideo(ASSET_URL, {
-    debug: false,
-    debugFrames: false,
-    wasmPath: WASM_PATH,
-    pixelFormat: gvPixelFormat,
-  });
+  console.log(
+    `[GV debug] player mode=${gvPlayer.mode}, ` +
+    `pixelFormat=${gvPlayer.pixelFormat}, ` +
+    `compressed=${gvPlayer.isCompressed}`
+  );
   gvPlayer.setLoop(true);
   gvPlayer.play();
   console.log(
@@ -82,8 +92,12 @@ try {
   const frame = await gvPlayer.update();
   console.log(`[GV debug] decoded ${gvPixelFormat} frame bytes: ${frame.byteLength}`);
 
-  gvFrameImage = createImage(gvMetadata.width, gvMetadata.height);
-  if (!gvFrameImage.setExternalPixels?.(frame, gvPixelFormat)) {
+  gvFrameImage = gvUseCompressedTexture
+    ? createCompressedImage(gvMetadata.width, gvMetadata.height, gvPixelFormat)
+    : createImage(gvMetadata.width, gvMetadata.height);
+  if (gvUseCompressedTexture) {
+    gvFrameImage.setCompressedPixels(frame);
+  } else if (!gvFrameImage.setExternalPixels?.(frame, gvPixelFormat)) {
     gvFrameImage.loadPixels();
     gvFrameImage.pixels.set(frame);
     gvFrameImage.updatePixels();
@@ -112,7 +126,9 @@ q5.draw = () => {
     if (framePromise && framePromise !== appliedFramePromise) {
       appliedFramePromise = framePromise;
       framePromise.then((frame) => {
-        if (!gvFrameImage.setExternalPixels?.(frame, gvPixelFormat)) {
+        if (gvUseCompressedTexture) {
+          gvFrameImage.setCompressedPixels(frame);
+        } else if (!gvFrameImage.setExternalPixels?.(frame, gvPixelFormat)) {
           gvFrameImage.loadPixels();
           gvFrameImage.pixels.set(frame);
           gvFrameImage.updatePixels();

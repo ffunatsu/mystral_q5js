@@ -4,3 +4,6 @@
 [submodule "gv_asset_for_test"]
 	path = gv_asset_for_test
 	url = https://github.com/ffunatsu/gv_asset_for_test/
+[submodule "gv_assets_for_test"]
+	path = gv_assets_for_test
+	url = https://github.com/ffunatsu/gv_assets_for_test

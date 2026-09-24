@@ -23,6 +23,7 @@ name = "gv_wasm"
 version = "0.1.0"
 dependencies = [
  "gv_video",
+ "lz4_flex",
 ]
 
 [[package]]
@@ -30,6 +31,9 @@ name = "lz4_flex"
 version = "0.11.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "373f5eceeeab7925e0c1098212f2fbc4d416adec9d35051a6ab251e824c1854a"
+dependencies = [
+ "twox-hash",
+]
 
 [[package]]
 name = "paste"
@@ -45,3 +49,9 @@ checksum = "54f0e5ca5dceb9b44d0f376de51782277c25fb42ffe1dad08d847f3a156d26d9"
 dependencies = [
  "paste",
 ]
+
+[[package]]
+name = "twox-hash"
+version = "2.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5283634e518fe9e82c7b20520bb4bc209009fd16c82077c802f8111ecbb0117a"

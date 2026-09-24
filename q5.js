@@ -8047,6 +8047,36 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
 		return g;
 	};
 
+	$.createCompressedImage = (w, h, format = 'bc3-rgba-unorm') => {
+		if (!Q5.device.features.has('texture-compression-bc')) {
+			throw new Error('WebGPU texture-compression-bc is required for compressed GV textures');
+		}
+		let g = $._g.createImage(w, h);
+		let texture = Q5.device.createTexture({
+			size: [w, h, 1],
+			format,
+			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST
+		});
+		$._addTexture(g, texture);
+		g.modified = false;
+		g.setCompressedPixels = (data) => {
+			const blockBytes = format === 'bc1-rgba-unorm' ? 8 : 16;
+			const bytesPerRow = Math.ceil(w / 4) * blockBytes;
+			if (bytesPerRow % 256 !== 0) {
+				throw new Error(`Compressed GV row pitch must be 256-byte aligned: ${bytesPerRow}`);
+			}
+			Q5.device.queue.writeTexture(
+				{ texture: g._texture },
+				data,
+				{ bytesPerRow, rowsPerImage: Math.ceil(h / 4) },
+				[w, h, 1]
+			);
+			g.frameCount++;
+			return true;
+		};
+		return g;
+	};
+
 	let _createGraphics = $.createGraphics;
 
 	$.createGraphics = (w, h, opt = {}) => {
@@ -9113,7 +9143,11 @@ Q5._requestGPU = async () => {
 			return false;
 		}
 
-		let device = await adapter.requestDevice();
+		const requiredFeatures = [];
+		if (adapter.features.has('texture-compression-bc')) {
+			requiredFeatures.push('texture-compression-bc');
+		}
+		let device = await adapter.requestDevice({ requiredFeatures });
 
 		const vertexStorageLimit =
 			device.limits.maxStorageBuffersInVertexStage ?? device.limits.maxStorageBuffersPerShaderStage;

@@ -71,7 +71,7 @@ if (isMystral) {
 }
 
 // q5.js
-function Q5(scope, parent, renderer) {
+function Q52(scope, parent, renderer) {
   let $ = this;
   $._isQ5 = $._q5 = true;
   $._parent = parent;
@@ -89,13 +89,13 @@ function Q5(scope, parent, renderer) {
   let autoLoaded = scope == "auto";
   scope ??= "global";
   if (scope == "auto") {
-    if (!(window.setup || window.update || Q5.update || window.draw || Q5.draw)) return;
+    if (!(window.setup || window.update || Q52.update || window.draw || Q52.draw)) return;
     scope = "global";
   }
   let globalScope;
   if (scope == "global") {
-    Q5._hasGlobal = $._isGlobal = true;
-    globalScope = Q5._esm ? globalThis : !Q5._server ? window : global;
+    Q52._hasGlobal = $._isGlobal = true;
+    globalScope = Q52._esm ? globalThis : !Q52._server ? window : global;
   }
   if (scope == "graphics") $._isGraphics = true;
   if (scope == "image") $._isImage = true;
@@ -118,7 +118,7 @@ function Q5(scope, parent, renderer) {
   $._frameRate = $._fps = 60;
   $._loop = true;
   async function runHooks(name) {
-    for (let hook of Q5.hooks[name]) {
+    for (let hook of Q52.hooks[name]) {
       await hook.call($, q);
     }
   }
@@ -182,7 +182,7 @@ function Q5(scope, parent, renderer) {
       await runHooks("predraw");
       await $.draw();
     } catch (e) {
-      if (!Q5.errorTolerant) $.noLoop();
+      if (!Q52.errorTolerant) $.noLoop();
       if ($._fes) $._fes(e);
       throw e;
     }
@@ -254,32 +254,32 @@ function Q5(scope, parent, renderer) {
   $.describe = () => {
   };
   $.log = $.print = console.log;
-  for (let m in Q5.modules) {
-    Q5.modules[m]($, q);
+  for (let m in Q52.modules) {
+    Q52.modules[m]($, q);
   }
-  let r = Q5.renderers[$._renderer];
+  let r = Q52.renderers[$._renderer];
   for (let m in r) {
     r[m]($, q);
   }
-  for (let k in Q5) {
+  for (let k in Q52) {
     if (k[1] != "_" && k[1] == k[1].toUpperCase()) {
-      $[k] = Q5[k];
+      $[k] = Q52[k];
     }
   }
   if ($._isGraphics) return;
   if ($._isGlobal) {
     let tmp = Object.assign({}, $);
     delete tmp.Color;
-    Object.assign(Q5, tmp);
-    delete Q5.Q5;
+    Object.assign(Q52, tmp);
+    delete Q52.Q5;
   }
-  for (let hook of Q5.hooks.init) {
+  for (let hook of Q52.hooks.init) {
     hook.call($, q);
   }
-  for (let [n, fn] of Object.entries(Q5.prototype)) {
+  for (let [n, fn] of Object.entries(Q52.prototype)) {
     if (n[0] != "_" && typeof $[n] == "function") $[n] = fn.bind($);
   }
-  for (let [n, fn] of Object.entries(Q5.preloadMethods)) {
+  for (let [n, fn] of Object.entries(Q52.preloadMethods)) {
     $[n] = function() {
       $._incrementPreload();
       return fn.apply($, arguments);
@@ -295,7 +295,7 @@ function Q5(scope, parent, renderer) {
     }
   }
   if (typeof scope == "function") scope($);
-  Q5._instanceCount++;
+  Q52._instanceCount++;
   let raf = window.requestAnimationFrame || function(cb) {
     const lastFrame = Number.isFinite($._lastFrameTime) ? $._lastFrameTime : performance?.now?.() ?? Date.now();
     const targetDur = Number.isFinite($._targetFrameDuration) ? $._targetFrameDuration : 16.666666666666668;
@@ -305,15 +305,15 @@ function Q5(scope, parent, renderer) {
     return setTimeout(() => cb(idealFrameTime), Math.max(0, Math.floor(delay)));
   };
   let t = globalScope || $;
-  let userFns = Q5._userFns.slice(0, 15);
+  let userFns = Q52._userFns.slice(0, 15);
   for (let name of userFns) $[name] ??= () => {
   };
   if ($._isGlobal) {
-    let allUserFns = Q5._userFns.slice(0, 19);
+    let allUserFns = Q52._userFns.slice(0, 19);
     for (let name of allUserFns) {
-      if (Q5[name]) $[name] = Q5[name];
+      if (Q52[name]) $[name] = Q52[name];
       else {
-        Object.defineProperty(Q5, name, {
+        Object.defineProperty(Q52, name, {
           configurable: true,
           get: () => $[name],
           set: (fn) => $[name] = fn
@@ -381,22 +381,22 @@ function Q5(scope, parent, renderer) {
     $._lastFrameTime = performance.now() - 15;
     raf(_draw);
   }
-  Q5.instances.push($);
-  if (autoLoaded || Q5._esm) start();
+  Q52.instances.push($);
+  if (autoLoaded || Q52._esm) start();
   else setTimeout(start, 32);
 }
-Q5.renderers = {};
-Q5.modules = {};
-Q5._server = typeof process == "object";
-Q5._esm = true;
-Q5._instanceCount = 0;
-Q5.instances = [];
-Q5.errorTolerant = false;
-Q5._friendlyError = (msg, func) => {
-  if (!Q5.disableFriendlyErrors) console.error(func + ": " + msg);
+Q52.renderers = {};
+Q52.modules = {};
+Q52._server = typeof process == "object";
+Q52._esm = true;
+Q52._instanceCount = 0;
+Q52.instances = [];
+Q52.errorTolerant = false;
+Q52._friendlyError = (msg, func) => {
+  if (!Q52.disableFriendlyErrors) console.error(func + ": " + msg);
 };
-Q5._validateParameters = () => true;
-Q5._userFns = [
+Q52._validateParameters = () => true;
+Q52._userFns = [
   "postProcess",
   "mouseMoved",
   "mousePressed",
@@ -417,7 +417,7 @@ Q5._userFns = [
   "update",
   "draw"
 ];
-Q5.hooks = {
+Q52.hooks = {
   init: [],
   presetup: [],
   postsetup: [],
@@ -425,48 +425,48 @@ Q5.hooks = {
   postdraw: [],
   remove: []
 };
-Q5.addHook = (lifecycle, fn) => Q5.hooks[lifecycle].push(fn);
-Q5.registerAddon = (addon) => {
+Q52.addHook = (lifecycle, fn) => Q52.hooks[lifecycle].push(fn);
+Q52.registerAddon = (addon) => {
   let lifecycles = {};
-  addon(Q5, Q5.prototype, lifecycles);
+  addon(Q52, Q52.prototype, lifecycles);
   for (let l in lifecycles) {
-    Q5.hooks[l].push(lifecycles[l]);
+    Q52.hooks[l].push(lifecycles[l]);
   }
 };
-Q5.prototype.registerMethod = (m, fn) => {
+Q52.prototype.registerMethod = (m, fn) => {
   if (m == "beforeSetup" || m.includes("Preload")) m = "presetup";
   if (m == "afterSetup") m = "postsetup";
   if (m == "pre") m = "predraw";
   if (m == "post") m = "postdraw";
-  Q5.hooks[m].push(fn);
+  Q52.hooks[m].push(fn);
 };
-Q5.preloadMethods = {};
-Q5.prototype.registerPreloadMethod = (n, fn) => Q5.preloadMethods[n] = fn[n];
-function Canvas2(w, h, opt) {
-  if (Q5._hasGlobal) return Promise.resolve(Q5.instances[0].canvas);
-  let useC2D = w == "c2d" || h == "c2d" || opt == "c2d" || opt?.renderer == "c2d" || !Q5._esm;
+Q52.preloadMethods = {};
+Q52.prototype.registerPreloadMethod = (n, fn) => Q52.preloadMethods[n] = fn[n];
+function Canvas(w, h, opt) {
+  if (Q52._hasGlobal) return Promise.resolve(Q52.instances[0].canvas);
+  let useC2D = w == "c2d" || h == "c2d" || opt == "c2d" || opt?.renderer == "c2d" || !Q52._esm;
   if (useC2D) {
-    let q = new Q5();
-    if (!Q5._esm) q.createCanvas(w, h, opt);
+    let q = new Q52();
+    if (!Q52._esm) q.createCanvas(w, h, opt);
     return q.ready.then(() => {
-      if (Q5._esm) q.createCanvas(w, h, opt);
+      if (Q52._esm) q.createCanvas(w, h, opt);
     });
   } else {
-    return Q5.WebGPU().then((q) => q.createCanvas(w, h, opt));
+    return Q52.WebGPU().then((q) => q.createCanvas(w, h, opt));
   }
 }
-if (Q5._server) {
-  global.q5 = global.Q5 = Q5;
-  global.p5 ??= Q5;
+if (Q52._server) {
+  global.q5 = global.Q5 = Q52;
+  global.p5 ??= Q52;
 }
 if (typeof window == "object") {
-  window.q5 = window.Q5 = Q5;
-  window.p5 ??= Q5;
-  window.createCanvas = window.Canvas = Canvas2;
+  window.q5 = window.Q5 = Q52;
+  window.p5 ??= Q52;
+  window.createCanvas = window.Canvas = Canvas;
   window.C2D = "c2d";
   window.WEBGPU = "webgpu";
   const cleanup = () => {
-    for (let inst of Q5.instances) {
+    for (let inst of Q52.instances) {
       try {
         inst.remove();
       } catch (e) {
@@ -475,26 +475,26 @@ if (typeof window == "object") {
   };
   window.addEventListener("pagehide", cleanup);
 } else global.window = 0;
-Q5.version = Q5.VERSION = "4.8";
+Q52.version = Q52.VERSION = "4.8";
 if (typeof document == "object") {
   let init = function() {
-    if (Q5._hasGlobal) return;
-    if (Q5.update || Q5.draw) {
-      Q5.WebGPU();
+    if (Q52._hasGlobal) return;
+    if (Q52.update || Q52.draw) {
+      Q52.WebGPU();
     } else {
-      new Q5("auto");
+      new Q52("auto");
     }
   };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else setTimeout(init, 0);
 }
-Q5.modules.canvas = ($, q) => {
+Q52.modules.canvas = ($, q) => {
   $._Canvas = window.OffscreenCanvas || function() {
     return document.createElement("canvas");
   };
-  if (Q5._server) {
-    if (Q5._createServerCanvas) {
-      q.canvas = Q5._createServerCanvas(200, 200);
+  if (Q52._server) {
+    if (Q52._createServerCanvas) {
+      q.canvas = Q52._createServerCanvas(200, 200);
     }
   } else if ($._isImage || $._isGraphics) {
     q.canvas = new $._Canvas(200, 200);
@@ -502,7 +502,7 @@ Q5.modules.canvas = ($, q) => {
   if (!$.canvas) {
     if (typeof document == "object") {
       q.canvas = document.createElement("canvas");
-      $.canvas.id = "q5Canvas" + Q5._instanceCount;
+      $.canvas.id = "q5Canvas" + Q52._instanceCount;
       $.canvas.classList.add("q5Canvas");
     } else $.noCanvas();
   }
@@ -514,7 +514,7 @@ Q5.modules.canvas = ($, q) => {
   if (c) {
     c.width = 200;
     c.height = 200;
-    c.colorSpace = Q5.canvasOptions.colorSpace;
+    c.colorSpace = Q52.canvasOptions.colorSpace;
     if (!$._isImage) {
       c.renderer = $._renderer;
       c[$._renderer] = true;
@@ -539,11 +539,11 @@ Q5.modules.canvas = ($, q) => {
     }
     options ??= arguments[3];
     if (typeof options == "string") options = { renderer: options };
-    let opt = Object.assign({}, Q5.canvasOptions);
+    let opt = Object.assign({}, Q52.canvasOptions);
     if (typeof options == "object") Object.assign(opt, options);
     if (!$._isImage) {
       if ($._isGraphics) $._pixelDensity = this._pixelDensity;
-      else if (!Q5._server) {
+      else if (!Q52._server) {
         let el = c, root = document.body || document.documentElement;
         while (el && el.parentElement != root) {
           el = el.parentElement;
@@ -585,7 +585,7 @@ Q5.modules.canvas = ($, q) => {
   $.createCanvas = $.Canvas;
   $.createGraphics = function(w, h, opt = {}) {
     if (typeof opt == "string") opt = { renderer: opt };
-    let g = new Q5("graphics", void 0, opt.renderer || ($._webgpuFallback ? "webgpu-fallback" : $._renderer));
+    let g = new Q52("graphics", void 0, opt.renderer || ($._webgpuFallback ? "webgpu-fallback" : $._renderer));
     opt.alpha ??= true;
     opt.colorSpace ??= $.canvas.colorSpace;
     opt.pixelDensity ??= $._pixelDensity;
@@ -608,7 +608,7 @@ Q5.modules.canvas = ($, q) => {
     q.height = h;
     q.halfWidth = c.hw = w / 2;
     q.halfHeight = c.hh = h / 2;
-    let m = Q5._libMap;
+    let m = Q52._libMap;
     if (m?.width) {
       q[m.width] = w;
       q[m.height] = h;
@@ -674,7 +674,7 @@ Q5.modules.canvas = ($, q) => {
     if (w == c.w && h == c.h) return;
     $._resizeCanvas(w, h);
   };
-  if (c && !Q5._createServerCanvas) c.resize = $.resizeCanvas;
+  if (c && !Q52._createServerCanvas) c.resize = $.resizeCanvas;
   $.pixelDensity = (v) => {
     if (!v || v == $._pixelDensity) return $._pixelDensity;
     $._pixelDensity = v;
@@ -691,78 +691,78 @@ Q5.modules.canvas = ($, q) => {
     });
   }
 };
-Q5.CENTER = "center";
-Q5.LEFT = "left";
-Q5.RIGHT = "right";
-Q5.TOP = "top";
-Q5.BOTTOM = "bottom";
-Q5.BASELINE = "alphabetic";
-Q5.MIDDLE = "middle";
-Q5.NORMAL = "normal";
-Q5.ITALIC = "italic";
-Q5.BOLD = "bold";
-Q5.BOLDITALIC = "italic bold";
-Q5.ROUND = "round";
-Q5.SQUARE = "butt";
-Q5.PROJECT = "square";
-Q5.MITER = "miter";
-Q5.BEVEL = "bevel";
-Q5.NONE = "none";
-Q5.SIMPLE = "simple";
-Q5.CHORD_OPEN = 0;
-Q5.PIE_OPEN = 1;
-Q5.PIE = 2;
-Q5.CHORD = 3;
-Q5.RADIUS = "radius";
-Q5.CORNER = "corner";
-Q5.CORNERS = "corners";
-Q5.OPEN = 0;
-Q5.CLOSE = 1;
-Q5.VIDEO = "video";
-Q5.AUDIO = "audio";
-Q5.LANDSCAPE = "landscape";
-Q5.PORTRAIT = "portrait";
-Q5.BLEND = "source-over";
-Q5.REMOVE = "destination-out";
-Q5.ADD = "lighter";
-Q5.DARKEST = "darken";
-Q5.LIGHTEST = "lighten";
-Q5.DIFFERENCE = "difference";
-Q5.SUBTRACT = "subtract";
-Q5.EXCLUSION = "exclusion";
-Q5.MULTIPLY = "multiply";
-Q5.SCREEN = "screen";
-Q5.REPLACE = "copy";
-Q5.OVERLAY = "overlay";
-Q5.HARD_LIGHT = "hard-light";
-Q5.SOFT_LIGHT = "soft-light";
-Q5.DODGE = "color-dodge";
-Q5.BURN = "color-burn";
-Q5.THRESHOLD = 1;
-Q5.GRAY = 2;
-Q5.OPAQUE = 3;
-Q5.INVERT = 4;
-Q5.POSTERIZE = 5;
-Q5.DILATE = 6;
-Q5.ERODE = 7;
-Q5.BLUR = 8;
-Q5.SEPIA = 9;
-Q5.BRIGHTNESS = 10;
-Q5.SATURATION = 11;
-Q5.CONTRAST = 12;
-Q5.HUE_ROTATE = 13;
-Q5.C2D = Q5.P2D = Q5.P2DHDR = "c2d";
-Q5.WEBGL = "webgl";
-Q5.GPU = Q5.WEBGPU = "webgpu";
-Q5.canvasOptions = {
+Q52.CENTER = "center";
+Q52.LEFT = "left";
+Q52.RIGHT = "right";
+Q52.TOP = "top";
+Q52.BOTTOM = "bottom";
+Q52.BASELINE = "alphabetic";
+Q52.MIDDLE = "middle";
+Q52.NORMAL = "normal";
+Q52.ITALIC = "italic";
+Q52.BOLD = "bold";
+Q52.BOLDITALIC = "italic bold";
+Q52.ROUND = "round";
+Q52.SQUARE = "butt";
+Q52.PROJECT = "square";
+Q52.MITER = "miter";
+Q52.BEVEL = "bevel";
+Q52.NONE = "none";
+Q52.SIMPLE = "simple";
+Q52.CHORD_OPEN = 0;
+Q52.PIE_OPEN = 1;
+Q52.PIE = 2;
+Q52.CHORD = 3;
+Q52.RADIUS = "radius";
+Q52.CORNER = "corner";
+Q52.CORNERS = "corners";
+Q52.OPEN = 0;
+Q52.CLOSE = 1;
+Q52.VIDEO = "video";
+Q52.AUDIO = "audio";
+Q52.LANDSCAPE = "landscape";
+Q52.PORTRAIT = "portrait";
+Q52.BLEND = "source-over";
+Q52.REMOVE = "destination-out";
+Q52.ADD = "lighter";
+Q52.DARKEST = "darken";
+Q52.LIGHTEST = "lighten";
+Q52.DIFFERENCE = "difference";
+Q52.SUBTRACT = "subtract";
+Q52.EXCLUSION = "exclusion";
+Q52.MULTIPLY = "multiply";
+Q52.SCREEN = "screen";
+Q52.REPLACE = "copy";
+Q52.OVERLAY = "overlay";
+Q52.HARD_LIGHT = "hard-light";
+Q52.SOFT_LIGHT = "soft-light";
+Q52.DODGE = "color-dodge";
+Q52.BURN = "color-burn";
+Q52.THRESHOLD = 1;
+Q52.GRAY = 2;
+Q52.OPAQUE = 3;
+Q52.INVERT = 4;
+Q52.POSTERIZE = 5;
+Q52.DILATE = 6;
+Q52.ERODE = 7;
+Q52.BLUR = 8;
+Q52.SEPIA = 9;
+Q52.BRIGHTNESS = 10;
+Q52.SATURATION = 11;
+Q52.CONTRAST = 12;
+Q52.HUE_ROTATE = 13;
+Q52.C2D = Q52.P2D = Q52.P2DHDR = "c2d";
+Q52.WEBGL = "webgl";
+Q52.GPU = Q52.WEBGPU = "webgpu";
+Q52.canvasOptions = {
   alpha: false,
   colorSpace: "display-p3"
 };
 if (!window.matchMedia || !matchMedia("(dynamic-range: high) and (color-gamut: p3)").matches) {
-  Q5.canvasOptions.colorSpace = "srgb";
-} else Q5.supportsHDR = true;
-Q5.renderers.c2d = {};
-Q5.renderers.c2d.canvas = ($, q) => {
+  Q52.canvasOptions.colorSpace = "srgb";
+} else Q52.supportsHDR = true;
+Q52.renderers.c2d = {};
+Q52.renderers.c2d.canvas = ($, q) => {
   let c = $.canvas;
   if ($.colorMode) $.colorMode("rgb", $._webgpu ? 1 : 255);
   $._createCanvas = function(w, h, options) {
@@ -796,7 +796,7 @@ Q5.renderers.c2d.canvas = ($, q) => {
     $.ctx.globalAlpha = 1;
     if (c2.canvas) $.image(c2, 0, 0, $.canvas.width, $.canvas.height);
     else {
-      if (Q5.Color && !c2._isColor) c2 = $.color(...arguments);
+      if (Q52.Color && !c2._isColor) c2 = $.color(...arguments);
       $.ctx.fillStyle = c2.toString();
       $.ctx.fillRect(0, 0, $.canvas.width, $.canvas.height);
     }
@@ -823,7 +823,7 @@ Q5.renderers.c2d.canvas = ($, q) => {
   };
   $.fill = function(c2) {
     $.__doFill = $._fillSet = true;
-    if (Q5.Color) {
+    if (Q52.Color) {
       if (!c2._isColor && (typeof c2 != "string" || $._namedColors[c2])) {
         c2 = $.color(...arguments);
       }
@@ -833,7 +833,7 @@ Q5.renderers.c2d.canvas = ($, q) => {
   };
   $.stroke = function(c2) {
     $.__doStroke = $._strokeSet = true;
-    if (Q5.Color) {
+    if (Q52.Color) {
       if (!c2._isColor && (typeof c2 != "string" || $._namedColors[c2])) {
         c2 = $.color(...arguments);
       }
@@ -854,7 +854,7 @@ Q5.renderers.c2d.canvas = ($, q) => {
   $._doShadow = false;
   $._shadowOffsetX = $._shadowOffsetY = $._shadowBlur = 10;
   $.shadow = function(c2) {
-    if (Q5.Color) {
+    if (Q52.Color) {
       if (!c2._isColor && (typeof c2 != "string" || $._namedColors[c2])) {
         c2 = $.color(...arguments);
       }
@@ -960,13 +960,13 @@ Q5.renderers.c2d.canvas = ($, q) => {
     popStyles();
   };
 };
-Q5.renderers.c2d.shapes = ($) => {
+Q52.renderers.c2d.shapes = ($) => {
   $.__doStroke = true;
   $.__doFill = true;
   $._strokeSet = false;
   $._fillSet = false;
-  $._ellipseMode = Q5.CENTER;
-  $._rectMode = Q5.CORNER;
+  $._ellipseMode = Q52.CENTER;
+  $._rectMode = Q52.CORNER;
   let firstVertex = true;
   let curveBuff = [];
   function ink() {
@@ -1223,7 +1223,7 @@ Q5.renderers.c2d.shapes = ($) => {
     return $.ctx.isPointInStroke(x * pd, y * pd);
   };
 };
-Q5.renderers.c2d.image = ($, q) => {
+Q52.renderers.c2d.image = ($, q) => {
   const c = $.canvas;
   if (c) {
     c.convertToBlob ??= (opt) => new Promise((resolve) => {
@@ -1235,7 +1235,7 @@ Q5.renderers.c2d.image = ($, q) => {
   $.createImage = (w, h, opt = {}) => {
     opt.colorSpace ??= $.canvas.colorSpace;
     opt.defaultImageScale ??= $._defaultImageScale;
-    return new Q5.Image(w, h, opt);
+    return new Q52.Image(w, h, opt);
   };
   $.loadImage = function(url, cb, opt) {
     if (url.canvas) return url;
@@ -1304,7 +1304,7 @@ Q5.renderers.c2d.image = ($, q) => {
     g.src = img.src = url;
     return g;
   };
-  $._imageMode = Q5.CORNER;
+  $._imageMode = Q52.CORNER;
   $.imageMode = (mode) => $._imageMode = mode;
   $.image = (img, dx, dy, dw, dh, sx = 0, sy = 0, sw, sh) => {
     if (!img) return;
@@ -1359,26 +1359,26 @@ Q5.renderers.c2d.image = ($, q) => {
     if ($.ctx.filter) {
       if (typeof type == "string") {
         f = type;
-      } else if (type == Q5.GRAY) {
+      } else if (type == Q52.GRAY) {
         f = `saturate(0%)`;
-      } else if (type == Q5.INVERT) {
+      } else if (type == Q52.INVERT) {
         f = `invert(100%)`;
-      } else if (type == Q5.BLUR) {
+      } else if (type == Q52.BLUR) {
         let r = Math.ceil(value * $._pixelDensity) || 1;
         f = `blur(${r}px)`;
-      } else if (type == Q5.THRESHOLD) {
+      } else if (type == Q52.THRESHOLD) {
         value ??= 0.5;
         let b = Math.floor(0.5 / Math.max(value, 1e-5) * 100);
         f = `saturate(0%) brightness(${b}%) contrast(1000000%)`;
-      } else if (type == Q5.SEPIA) {
+      } else if (type == Q52.SEPIA) {
         f = `sepia(${value ?? 1})`;
-      } else if (type == Q5.BRIGHTNESS) {
+      } else if (type == Q52.BRIGHTNESS) {
         f = `brightness(${value ?? 1})`;
-      } else if (type == Q5.SATURATION) {
+      } else if (type == Q52.SATURATION) {
         f = `saturate(${value ?? 1})`;
-      } else if (type == Q5.CONTRAST) {
+      } else if (type == Q52.CONTRAST) {
         f = `contrast(${value ?? 1})`;
-      } else if (type == Q5.HUE_ROTATE) {
+      } else if (type == Q52.HUE_ROTATE) {
         let unit = $._angleMode == 0 ? "rad" : "deg";
         f = `hue-rotate(${value}${unit})`;
       }
@@ -1535,16 +1535,16 @@ Q5.renderers.c2d.image = ($, q) => {
   };
   $.noTint = () => $._tint = null;
 };
-Q5.Image = class {
+Q52.Image = class {
   constructor(w, h, opt = {}) {
     opt.alpha ??= true;
-    opt.colorSpace ??= Q5.canvasOptions.colorSpace;
+    opt.colorSpace ??= Q52.canvasOptions.colorSpace;
     let $ = this;
     $._isImage = true;
     $.canvas = $.ctx = $.drawingContext = null;
     $.pixels = [];
-    Q5.modules.canvas($, $);
-    let r = Q5.renderers.c2d;
+    Q52.modules.canvas($, $);
+    let r = Q52.renderers.c2d;
     for (let m2 of ["canvas", "image", "softFilters"]) {
       if (r[m2]) r[m2]($, $);
     }
@@ -1558,7 +1558,7 @@ Q5.Image = class {
     $.mirrorY = false;
     delete $.createCanvas;
     $._loop = false;
-    let m = Q5._libMap;
+    let m = Q52._libMap;
     if (m) {
       let imgFns = [
         "copy",
@@ -1587,7 +1587,7 @@ Q5.Image = class {
     return this.height;
   }
 };
-Q5.renderers.c2d.softFilters = ($) => {
+Q52.renderers.c2d.softFilters = ($) => {
   let u = null;
   function ensureBuf() {
     let l = $.canvas.width * $.canvas.height * 4;
@@ -1595,7 +1595,7 @@ Q5.renderers.c2d.softFilters = ($) => {
   }
   function initSoftFilters() {
     $._filters = [];
-    $._filters[Q5.THRESHOLD] = (d, thresh) => {
+    $._filters[Q52.THRESHOLD] = (d, thresh) => {
       if (thresh === void 0) thresh = 127.5;
       else thresh *= 255;
       for (let i = 0; i < d.length; i += 4) {
@@ -1603,25 +1603,25 @@ Q5.renderers.c2d.softFilters = ($) => {
         d[i] = d[i + 1] = d[i + 2] = gray >= thresh ? 255 : 0;
       }
     };
-    $._filters[Q5.GRAY] = (d) => {
+    $._filters[Q52.GRAY] = (d) => {
       for (let i = 0; i < d.length; i += 4) {
         const gray = 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
         d[i] = d[i + 1] = d[i + 2] = gray;
       }
     };
-    $._filters[Q5.OPAQUE] = (d) => {
+    $._filters[Q52.OPAQUE] = (d) => {
       for (let i = 0; i < d.length; i += 4) {
         d[i + 3] = 255;
       }
     };
-    $._filters[Q5.INVERT] = (d) => {
+    $._filters[Q52.INVERT] = (d) => {
       for (let i = 0; i < d.length; i += 4) {
         d[i] = 255 - d[i];
         d[i + 1] = 255 - d[i + 1];
         d[i + 2] = 255 - d[i + 2];
       }
     };
-    $._filters[Q5.POSTERIZE] = (d, lvl = 4) => {
+    $._filters[Q52.POSTERIZE] = (d, lvl = 4) => {
       let lvl1 = lvl - 1;
       for (let i = 0; i < d.length; i += 4) {
         d[i] = (d[i] * lvl >> 8) * 255 / lvl1;
@@ -1629,7 +1629,7 @@ Q5.renderers.c2d.softFilters = ($) => {
         d[i + 2] = (d[i + 2] * lvl >> 8) * 255 / lvl1;
       }
     };
-    $._filters[Q5.DILATE] = (d, func) => {
+    $._filters[Q52.DILATE] = (d, func) => {
       func ??= Math.max;
       ensureBuf();
       u.set(d);
@@ -1651,10 +1651,10 @@ Q5.renderers.c2d.softFilters = ($) => {
         }
       }
     };
-    $._filters[Q5.ERODE] = (d) => {
-      $._filters[Q5.DILATE](d, Math.min);
+    $._filters[Q52.ERODE] = (d) => {
+      $._filters[Q52.DILATE](d, Math.min);
     };
-    $._filters[Q5.BLUR] = (d, r) => {
+    $._filters[Q52.BLUR] = (d, r) => {
       r = r || 1;
       r = Math.floor(r * $._pixelDensity);
       ensureBuf();
@@ -1719,7 +1719,7 @@ Q5.renderers.c2d.softFilters = ($) => {
     $.ctx.putImageData(imgData, 0, 0);
   };
 };
-Q5.renderers.c2d.text = ($, q) => {
+Q52.renderers.c2d.text = ($, q) => {
   $._textAlign = "left";
   $._textBaseline = "alphabetic";
   $._textSize = 12;
@@ -2012,7 +2012,7 @@ Q5.renderers.c2d.text = ($, q) => {
         colorCache.size++;
         cacheSize++;
       }
-      if (cacheSize > Q5.MAX_TEXT_IMAGES) {
+      if (cacheSize > Q52.MAX_TEXT_IMAGES) {
         for (const str2 in cache) {
           styleCache = cache[str2];
           for (const hash in styleCache) {
@@ -2100,9 +2100,9 @@ Q5.renderers.c2d.text = ($, q) => {
     return points;
   };
 };
-Q5.fonts = [];
-Q5.MAX_TEXT_IMAGES = 5e3;
-Q5.modules.color = ($, q) => {
+Q52.fonts = [];
+Q52.MAX_TEXT_IMAGES = 5e3;
+Q52.modules.color = ($, q) => {
   $.RGB = $.RGBA = $.RGBHDR = $._colorMode = "rgb";
   $.HSL = "hsl";
   $.HSB = "hsb";
@@ -2116,16 +2116,16 @@ Q5.modules.color = ($, q) => {
     format ??= mode == "rgb" ? $._c2d || srgb ? 255 : 1 : 1;
     $._colorFormat = format == "integer" || format == 255 ? 255 : 1;
     if (mode == "oklch") {
-      q.Color = Q5.ColorOKLCH;
+      q.Color = Q52.ColorOKLCH;
     } else if (mode == "hsl") {
-      q.Color = srgb ? Q5.ColorHSL : Q5.ColorHSL_P3;
+      q.Color = srgb ? Q52.ColorHSL : Q52.ColorHSL_P3;
     } else if (mode == "hsb") {
-      q.Color = srgb ? Q5.ColorHSB : Q5.ColorHSB_P3;
+      q.Color = srgb ? Q52.ColorHSB : Q52.ColorHSB_P3;
     } else {
       if ($._colorFormat == 255) {
-        q.Color = srgb ? Q5.ColorRGB_8 : Q5.ColorRGB_P3_8;
+        q.Color = srgb ? Q52.ColorRGB_8 : Q52.ColorRGB_P3_8;
       } else {
-        q.Color = srgb ? Q5.ColorRGB : Q5.ColorRGB_P3;
+        q.Color = srgb ? Q52.ColorRGB : Q52.ColorRGB_P3;
       }
       $._colorMode = "rgb";
     }
@@ -2185,7 +2185,7 @@ Q5.modules.color = ($, q) => {
         } else if ($._namedColors[c0]) {
           [c0, c1, c2, c3] = $._namedColors[c0];
           if ($._colorMode != "rgb") {
-            C = $._srgb ? Q5.ColorRGB_8 : Q5.ColorRGB_P3_8;
+            C = $._srgb ? Q52.ColorRGB_8 : Q52.ColorRGB_P3_8;
             return new C(c0, c1, c2, c3);
           }
         } else {
@@ -2208,7 +2208,7 @@ Q5.modules.color = ($, q) => {
       }
     }
     if (c2 == void 0) {
-      if ($._colorMode == Q5.OKLCH) return new C(c0, 0, 0, c1);
+      if ($._colorMode == Q52.OKLCH) return new C(c0, 0, 0, c1);
       return new C(c0, c0, c0, c1);
     }
     return new C(c0, c1, c2, c3);
@@ -2257,7 +2257,7 @@ Q5.modules.color = ($, q) => {
     }
   };
 };
-Q5.Color = class {
+Q52.Color = class {
   constructor() {
     this._isColor = true;
     this._q5Color = true;
@@ -2269,7 +2269,7 @@ Q5.Color = class {
     this.a = v;
   }
 };
-Q5.ColorOKLCH = class extends Q5.Color {
+Q52.ColorOKLCH = class extends Q52.Color {
   constructor(l, c, h, a) {
     super();
     this.l = l;
@@ -2308,7 +2308,7 @@ Q5.ColorOKLCH = class extends Q5.Color {
     this.h = v;
   }
 };
-Q5.ColorRGB = class extends Q5.Color {
+Q52.ColorRGB = class extends Q52.Color {
   constructor(r, g, b, a) {
     super();
     this.r = r;
@@ -2347,12 +2347,12 @@ Q5.ColorRGB = class extends Q5.Color {
     this.b = v;
   }
 };
-Q5.ColorRGB_P3 = class extends Q5.ColorRGB {
+Q52.ColorRGB_P3 = class extends Q52.ColorRGB {
   toString() {
     return `color(display-p3 ${this.r} ${this.g} ${this.b} / ${this.a})`;
   }
 };
-Q5.ColorRGB_8 = class extends Q5.ColorRGB {
+Q52.ColorRGB_8 = class extends Q52.ColorRGB {
   constructor(r, g, b, a) {
     super(r, g, b, a ?? 255);
   }
@@ -2373,7 +2373,7 @@ Q5.ColorRGB_8 = class extends Q5.ColorRGB {
     return `rgb(${this.r} ${this.g} ${this.b} / ${this.a / 255})`;
   }
 };
-Q5.ColorRGB_P3_8 = class extends Q5.ColorRGB_8 {
+Q52.ColorRGB_P3_8 = class extends Q52.ColorRGB_8 {
   constructor(r, g, b, a) {
     super(r, g, b, a ?? 255);
     this._edited = true;
@@ -2418,7 +2418,7 @@ Q5.ColorRGB_P3_8 = class extends Q5.ColorRGB_8 {
     return this._css;
   }
 };
-Q5.ColorHSL = class extends Q5.Color {
+Q52.ColorHSL = class extends Q52.Color {
   constructor(h, s, l, a) {
     super();
     this.h = h;
@@ -2457,13 +2457,13 @@ Q5.ColorHSL = class extends Q5.Color {
     this.l = v;
   }
 };
-Q5.ColorHSL_P3 = class extends Q5.ColorHSL {
+Q52.ColorHSL_P3 = class extends Q52.ColorHSL {
   toString() {
-    let o = Q5.HSLtoRGB(this.h, this.s, this.l);
+    let o = Q52.HSLtoRGB(this.h, this.s, this.l);
     return `color(display-p3 ${o.join(" ")} / ${this.a})`;
   }
 };
-Q5.ColorHSB = class extends Q5.ColorHSL {
+Q52.ColorHSB = class extends Q52.ColorHSL {
   constructor(h, s, b, a) {
     super(h, s, b, a);
     delete this.l;
@@ -2479,7 +2479,7 @@ Q5.ColorHSB = class extends Q5.ColorHSL {
     return c && this.h == c.h && this.s == c.s && this.b == c.b;
   }
   toString() {
-    let o = Q5.HSBtoHSL(this.h, this.s, this.b);
+    let o = Q52.HSBtoHSL(this.h, this.s, this.b);
     return `hsl(${o.join(" ")} / ${this.a})`;
   }
   get v() {
@@ -2501,19 +2501,19 @@ Q5.ColorHSB = class extends Q5.ColorHSL {
     this.b = v;
   }
 };
-Q5.ColorHSB_P3 = class extends Q5.ColorHSB {
+Q52.ColorHSB_P3 = class extends Q52.ColorHSB {
   toString() {
-    let o = Q5.HSLtoRGB(...Q5.HSBtoHSL(this.h, this.s, this.b));
+    let o = Q52.HSLtoRGB(...Q52.HSBtoHSL(this.h, this.s, this.b));
     return `color(display-p3 ${o.join(" ")} / ${this.a})`;
   }
 };
-Q5.HSLtoRGB = (h, s, l) => {
+Q52.HSLtoRGB = (h, s, l) => {
   l /= 100;
   let m = s / 100 * Math.min(l, 1 - l);
   let f = (n, k = (n + h / 30) % 12) => l - m * Math.max(Math.min(k - 3, 9 - k, 1), -1);
   return [f(0), f(8), f(4)];
 };
-Q5.HSBtoHSL = (h, s, v, l = v * (1 - s / 200)) => [h, !l || l == 100 ? 0 : (v - l) / Math.min(l, 100 - l) * 100, l];
+Q52.HSBtoHSL = (h, s, v, l = v * (1 - s / 200)) => [h, !l || l == 100 ? 0 : (v - l) / Math.min(l, 100 - l) * 100, l];
 {
   const multiplyMatrices = (A, B) => [
     A[0] * B[0] + A[1] * B[1] + A[2] * B[2],
@@ -2575,15 +2575,15 @@ Q5.HSBtoHSL = (h, s, v, l = v * (1 - s / 200)) => [h, !l || l == 100 ? 0 : (v - 
     ],
     xyz
   );
-  Q5.OKLCHtoRGB = (l, c, h) => srgbLinear2rgb(xyz2rgbLinear(oklab2xyz(oklch2oklab(l, c, h))));
+  Q52.OKLCHtoRGB = (l, c, h) => srgbLinear2rgb(xyz2rgbLinear(oklab2xyz(oklch2oklab(l, c, h))));
 }
-Q5.modules.display = ($) => {
+Q52.modules.display = ($) => {
   if (!$.canvas || $._isGraphics) return;
   let c = $.canvas;
   $.MAXED = "maxed";
   $.SMOOTH = "smooth";
   $.PIXELATED = "pixelated";
-  if (Q5._instanceCount == 0 && !Q5._server) {
+  if (Q52._instanceCount == 0 && !Q52._server) {
     document.head.insertAdjacentHTML(
       "beforeend",
       `<style>
@@ -2646,7 +2646,7 @@ main {
     }
   };
   $.displayMode = (displayMode = "normal", renderQuality = "smooth", displayScale = 1) => {
-    if (Q5._server) return;
+    if (Q52._server) return;
     if (typeof displayScale == "string") {
       displayScale = parseFloat(displayScale.slice(1));
     }
@@ -2675,7 +2675,7 @@ main {
     else document.exitFullscreen();
   };
 };
-Q5.modules.dom = ($, q) => {
+Q52.modules.dom = ($, q) => {
   $.elementMode = (mode) => $._elementMode = mode;
   $.createElement = (tag, content) => {
     let el = document.createElement(tag);
@@ -2990,9 +2990,9 @@ Q5.modules.dom = ($, q) => {
   $.findEl = (selector) => document.querySelector(selector);
   $.findEls = (selector) => document.querySelectorAll(selector);
 };
-Q5.modules.fes = ($) => {
+Q52.modules.fes = ($) => {
   $._fes = async (e) => {
-    if (Q5.disableFriendlyErrors) return;
+    if (Q52.disableFriendlyErrors) return;
     e._handledByFES = true;
     let stackLines = e.stack?.split("\n");
     if (!stackLines?.length) return;
@@ -3015,7 +3015,7 @@ Q5.modules.fes = ($) => {
       let res = await (await fetch(fileUrl)).text(), lines = res.split("\n"), errLine = lines[lineNum - 1]?.trim();
       let type = "";
       if (e instanceof SyntaxError || e.name === "SyntaxError") type = "syntax";
-      Q5.friendlyError(fileBase, lineNum, errLine, type);
+      Q52.friendlyError(fileBase, lineNum, errLine, type);
     } catch (err) {
     }
   };
@@ -3045,7 +3045,7 @@ Q5.modules.fes = ($) => {
       });
     }
   }
-  if ($._isGlobal && Q5.online != false && typeof navigator != void 0 && navigator.onLine) {
+  if ($._isGlobal && Q52.online != false && typeof navigator != void 0 && navigator.onLine) {
     async function checkLatestVersion() {
       try {
         let res = await fetch("https://data.jsdelivr.com/v1/package/npm/q5");
@@ -3053,8 +3053,8 @@ Q5.modules.fes = ($) => {
         let data = await res.json();
         let l = data.tags.latest;
         l = l.slice(0, l.lastIndexOf("."));
-        if (l != Q5.version) {
-          console.warn(`q5.js v${l} is now available! Consider updating from v${Q5.version}.`);
+        if (l != Q52.version) {
+          console.warn(`q5.js v${l} is now available! Consider updating from v${Q52.version}.`);
         }
       } catch (e) {
       }
@@ -3062,13 +3062,13 @@ Q5.modules.fes = ($) => {
     checkLatestVersion();
   }
 };
-Q5.friendlyError = (file, lineNum, detail) => {
+Q52.friendlyError = (file, lineNum, detail) => {
   let bug = ["\u{1F41B}", "\u{1F41E}", "\u{1F41C}", "\u{1F997}", "\u{1F98B}", "\u{1FAB2}"][Math.floor(Math.random() * 6)], inIframe = window.self !== window.top, prefix = `q5 ${bug}`, msg = `Error in ${file} on line ${lineNum}`;
   if (detail) msg += ":\n\n" + detail;
   if (inIframe) return console.log(prefix + msg);
   console.log(`%c${prefix}%c ${msg}`, "background: #b7ebff; color: #000;", "");
 };
-Q5.modules.input = ($, q) => {
+Q52.modules.input = ($, q) => {
   if ($._isGraphics) return;
   $.mouseX = $.mouseY = $.pmouseX = $.pmouseY = $.movedX = $.movedY = 0;
   $.touches = [];
@@ -3096,10 +3096,10 @@ Q5.modules.input = ($, q) => {
   $.MOVE = "move";
   $.TEXT = "text";
   let keysHeld = {};
-  let mouseBtns = [Q5.LEFT, Q5.CENTER, Q5.RIGHT];
+  let mouseBtns = [Q52.LEFT, Q52.CENTER, Q52.RIGHT];
   let c = $.canvas;
   $._startAudio = () => {
-    if (!Q5.aud || Q5.aud?.state != "running") $.userStartAudio();
+    if (!Q52.aud || Q52.aud?.state != "running") $.userStartAudio();
   };
   $._updatePointer = (e) => {
     let id = e.pointerId ?? $.pointers[0]?.id;
@@ -3321,7 +3321,7 @@ Q5.modules.input = ($, q) => {
     l("touchcancel", (e) => $._ontouchend(e));
   }
 };
-Q5.modules.math = ($, q) => {
+Q52.modules.math = ($, q) => {
   $.RADIANS = 0;
   $.DEGREES = 1;
   $.PI = Math.PI;
@@ -3353,7 +3353,7 @@ Q5.modules.math = ($, q) => {
   let RADTODEG = $._RADTODEG = 180 / Math.PI;
   $.degrees = (x) => x * $._RADTODEG;
   $.radians = (x) => x * $._DEGTORAD;
-  $.map = Q5.prototype.map = (value, istart, istop, ostart, ostop, clamp) => {
+  $.map = Q52.prototype.map = (value, istart, istop, ostart, ostop, clamp) => {
     let val = ostart + (ostop - ostart) * ((value - istart) * 1 / (istop - istart));
     if (!clamp) {
       return val;
@@ -3584,10 +3584,10 @@ Q5.modules.math = ($, q) => {
   $.PERLIN = "perlin";
   $.SIMPLEX = "simplex";
   $.BLOCKY = "blocky";
-  $.NoiseGenerator = Q5.PerlinNoise;
+  $.NoiseGenerator = Q52.PerlinNoise;
   let _noise;
   $.noiseMode = (mode) => {
-    q.NoiseGenerator = Q5[mode[0].toUpperCase() + mode.slice(1) + "Noise"];
+    q.NoiseGenerator = Q52[mode[0].toUpperCase() + mode.slice(1) + "Noise"];
     _noise = null;
   };
   $.noiseSeed = (seed) => {
@@ -3603,9 +3603,9 @@ Q5.modules.math = ($, q) => {
     if (falloff > 0) _noise.falloff = falloff;
   };
 };
-Q5.NoiseGenerator = class {
+Q52.NoiseGenerator = class {
 };
-Q5.PerlinNoise = class extends Q5.NoiseGenerator {
+Q52.PerlinNoise = class extends Q52.NoiseGenerator {
   constructor(seed) {
     super();
     this.grad3 = [
@@ -3703,7 +3703,7 @@ Q5.PerlinNoise = class extends Q5.NoiseGenerator {
     return (total / maxAmp + 1) / 2;
   }
 };
-Q5.modules.record = ($, q) => {
+Q52.modules.record = ($, q) => {
   let rec, btn0, btn1, timer, formatSelect, bitrateInput, audioToggle;
   $.recording = false;
   function initRecorder(opt = {}) {
@@ -3889,7 +3889,7 @@ Q5.modules.record = ($, q) => {
         let aud = $.getAudioContext();
         let dest = aud.createMediaStreamDestination();
         if (aud.destination.input) aud.destination.input.connect(dest);
-        else Q5.soundOut.connect(dest);
+        else Q52.soundOut.connect(dest);
         rec.audioTrack = dest.stream.getAudioTracks()[0];
         rec.stream = new MediaStream([rec.videoTrack, rec.audioTrack]);
       } else rec.stream = canvasStream;
@@ -4004,16 +4004,16 @@ Q5.modules.record = ($, q) => {
     q.recording = false;
   };
 };
-Q5.modules.sound = ($, q) => {
-  $.Sound = Q5.Sound;
+Q52.modules.sound = ($, q) => {
+  $.Sound = Q52.Sound;
   let sounds = [];
   $.loadSound = (url, cb) => {
-    let s = new Q5.Sound();
+    let s = new Q52.Sound();
     sounds.push(s);
     s.promise = (async () => {
       if (s._usedAwait) {
         sounds.splice(sounds.indexOf(s), 1);
-        s = new Q5.Sound();
+        s = new Q52.Sound();
         sounds.push(s);
       }
       let err;
@@ -4063,39 +4063,39 @@ Q5.modules.sound = ($, q) => {
     };
     return a;
   };
-  $.getAudioContext = () => Q5.aud;
+  $.getAudioContext = () => Q52.aud;
   $.userStartAudio = () => {
-    if (globalThis.__mystral && !Q5.aud) {
-      Q5.aud = { state: "running", resume() {
+    if (globalThis.__mystral && !Q52.aud) {
+      Q52.aud = { state: "running", resume() {
       } };
     }
     if (window.AudioContext) {
-      if (Q5._offlineAudio) {
-        Q5._offlineAudio = false;
-        Q5.aud = new window.AudioContext();
-        Q5.soundOut = Q5.aud.createGain();
-        Q5.soundOut.connect(Q5.aud.destination);
-        for (let inst of Q5.instances) {
+      if (Q52._offlineAudio) {
+        Q52._offlineAudio = false;
+        Q52.aud = new window.AudioContext();
+        Q52.soundOut = Q52.aud.createGain();
+        Q52.soundOut.connect(Q52.aud.destination);
+        for (let inst of Q52.instances) {
           inst._userAudioStarted();
         }
       }
-      return Q5.aud.resume();
+      return Q52.aud.resume();
     }
   };
   $._userAudioStarted = () => {
     for (let s of sounds) s.init();
   };
   $.outputVolume = (level) => {
-    if (Q5.soundOut) Q5.soundOut.gain.value = level;
+    if (Q52.soundOut) Q52.soundOut.gain.value = level;
   };
 };
 if (window.OfflineAudioContext) {
-  Q5.aud = new window.OfflineAudioContext(2, 1, 44100);
-  Q5._offlineAudio = true;
-  Q5.soundOut = Q5.aud.createGain();
-  Q5.soundOut.connect(Q5.aud.destination);
+  Q52.aud = new window.OfflineAudioContext(2, 1, 44100);
+  Q52._offlineAudio = true;
+  Q52.soundOut = Q52.aud.createGain();
+  Q52.soundOut.connect(Q52.aud.destination);
 }
-Q5.Sound = class {
+Q52.Sound = class {
   constructor() {
     this._isSound = true;
     this.sources = /* @__PURE__ */ new Set();
@@ -4105,25 +4105,25 @@ Q5.Sound = class {
     this.url = url;
     let res = await fetch(url);
     this.buffer = await res.arrayBuffer();
-    this.buffer = await Q5.aud.decodeAudioData(this.buffer);
-    if (Q5.aud) this.init();
+    this.buffer = await Q52.aud.decodeAudioData(this.buffer);
+    if (Q52.aud) this.init();
   }
   init() {
     if (!this.buffer.length) return;
-    this.gainNode = Q5.aud.createGain();
-    this.pannerNode = Q5.aud.createStereoPanner();
+    this.gainNode = Q52.aud.createGain();
+    this.pannerNode = Q52.aud.createStereoPanner();
     this.gainNode.connect(this.pannerNode);
-    this.pannerNode.connect(Q5.soundOut);
+    this.pannerNode.connect(Q52.soundOut);
     this.loaded = true;
     if (this._volume) this.volume = this._volume;
     if (this._pan) this.pan = this._pan;
   }
   _newSource(offset, duration) {
-    let source = Q5.aud.createBufferSource();
+    let source = Q52.aud.createBufferSource();
     source.buffer = this.buffer;
     source.connect(this.gainNode);
     source.loop = this._loop;
-    source._startedAt = Q5.aud.currentTime;
+    source._startedAt = Q52.aud.currentTime;
     source._offset = offset;
     source._duration = duration;
     source.start(0, source._offset, source._duration);
@@ -4167,7 +4167,7 @@ Q5.Sound = class {
     if (!this.isPlaying()) return;
     for (let source of this.sources) {
       source.stop();
-      let timePassed = Q5.aud.currentTime - source._startedAt;
+      let timePassed = Q52.aud.currentTime - source._startedAt;
       source._offset += timePassed;
       if (source._duration) source._duration -= timePassed;
     }
@@ -4231,7 +4231,7 @@ Q5.Sound = class {
     this._onended = cb;
   }
 };
-Q5.modules.util = ($, q) => {
+Q52.modules.util = ($, q) => {
   $._loadFile = (url, cb, type) => {
     let ret = {};
     ret.promise = fetch(url).then((res) => {
@@ -4241,7 +4241,7 @@ Q5.modules.util = ($, q) => {
       }
       return type == "json" ? res.json() : res.text();
     }).then((f) => {
-      if (type == "csv") f = Q5.CSV.parse(f);
+      if (type == "csv") f = Q52.CSV.parse(f);
       if (typeof f == "string") ret.text = f;
       else Object.assign(ret, f);
       delete ret.then;
@@ -4332,7 +4332,7 @@ Q5.modules.util = ($, q) => {
       saveFile(a, b.slice(0, lastDot), b.slice(lastDot + 1));
     } else saveFile(a);
   };
-  if ($.canvas && !Q5._createServerCanvas) {
+  if ($.canvas && !Q52._createServerCanvas) {
     $.canvas.save = $.saveCanvas = $.save;
   }
   if (typeof localStorage == "object") {
@@ -4364,8 +4364,8 @@ Q5.modules.util = ($, q) => {
     return a;
   };
 };
-Q5.CSV = {};
-Q5.CSV.parse = (csv, sep = ",", lineSep = "\n") => {
+Q52.CSV = {};
+Q52.CSV.parse = (csv, sep = ",", lineSep = "\n") => {
   if (!csv.length) return [];
   let a = [], lns = csv.split(lineSep), headers = lns[0].split(sep).map((h) => h.replaceAll('"', ""));
   for (let i = 1; i < lns.length; i++) {
@@ -4375,11 +4375,11 @@ Q5.CSV.parse = (csv, sep = ",", lineSep = "\n") => {
   }
   return a;
 };
-Q5.modules.vector = ($) => {
-  $.Vector = Q5.Vector;
+Q52.modules.vector = ($) => {
+  $.Vector = Q52.Vector;
   $.createVector = (x, y, z) => new $.Vector(x, y, z, $);
 };
-Q5.Vector = class {
+Q52.Vector = class {
   constructor(x, y, z, $) {
     this.x = x || 0;
     this.y = y || 0;
@@ -4399,7 +4399,7 @@ Q5.Vector = class {
     return this;
   }
   copy() {
-    return new Q5.Vector(this.x, this.y, this.z);
+    return new Q52.Vector(this.x, this.y, this.z);
   }
   _arg2v(x, y, z) {
     if (x?.x !== void 0) return x;
@@ -4558,7 +4558,7 @@ Q5.Vector = class {
   }
   angleBetween() {
     let u = this._arg2v(...arguments);
-    let o = Q5.Vector.cross(this, u);
+    let o = Q52.Vector.cross(this, u);
     let ang = this._$.atan2(o.mag(), this.dot(u));
     return ang * Math.sign(o.z || 1);
   }
@@ -4583,7 +4583,7 @@ Q5.Vector = class {
     if (v0Mag == 0 || v1Mag == 0) {
       return this.mult(1 - amt).add(u.mult(amt));
     }
-    let axis = Q5.Vector.cross(this, u);
+    let axis = Q52.Vector.cross(this, u);
     let axisMag = axis.mag();
     let theta = Math.atan2(axisMag, this.dot(u));
     if (axisMag > 0) {
@@ -4651,29 +4651,29 @@ Q5.Vector = class {
     return `[${this.x}, ${this.y}, ${this.z}]`;
   }
 };
-Q5.Vector.add = (v, u) => v.copy().add(u);
-Q5.Vector.cross = (v, u) => v.copy().cross(u);
-Q5.Vector.dist = (v, u) => Math.hypot(v.x - u.x, v.y - u.y, v.z - u.z);
-Q5.Vector.div = (v, u) => v.copy().div(u);
-Q5.Vector.dot = (v, u) => v.copy().dot(u);
-Q5.Vector.equals = (v, u, epsilon) => v.equals(u, epsilon);
-Q5.Vector.lerp = (v, u, amt) => v.copy().lerp(u, amt);
-Q5.Vector.slerp = (v, u, amt) => v.copy().slerp(u, amt);
-Q5.Vector.limit = (v, m) => v.copy().limit(m);
-Q5.Vector.direction = (v) => (void 0)._$.atan2(v.y, v.x);
-Q5.Vector.magSq = (v) => v.x * v.x + v.y * v.y + v.z * v.z;
-Q5.Vector.mag = (v) => Math.sqrt(Q5.Vector.magSq(v));
-Q5.Vector.mult = (v, u) => v.copy().mult(u);
-Q5.Vector.normalize = (v) => v.copy().normalize();
-Q5.Vector.rem = (v, u) => v.copy().rem(u);
-Q5.Vector.sub = (v, u) => v.copy().sub(u);
-Q5.Vector.reflect = (v, n) => v.copy().reflect(n);
-Q5.Vector.random2D = () => new Q5.Vector().random2D();
-Q5.Vector.random3D = () => new Q5.Vector().random3D();
-Q5.Vector.fromAngle = (th, l) => new Q5.Vector().fromAngle(th, l);
-Q5.Vector.fromAngles = (th, ph, l) => new Q5.Vector().fromAngles(th, ph, l);
-Q5.renderers.webgpu = {};
-Q5.renderers.webgpu.canvas = ($, q) => {
+Q52.Vector.add = (v, u) => v.copy().add(u);
+Q52.Vector.cross = (v, u) => v.copy().cross(u);
+Q52.Vector.dist = (v, u) => Math.hypot(v.x - u.x, v.y - u.y, v.z - u.z);
+Q52.Vector.div = (v, u) => v.copy().div(u);
+Q52.Vector.dot = (v, u) => v.copy().dot(u);
+Q52.Vector.equals = (v, u, epsilon) => v.equals(u, epsilon);
+Q52.Vector.lerp = (v, u, amt) => v.copy().lerp(u, amt);
+Q52.Vector.slerp = (v, u, amt) => v.copy().slerp(u, amt);
+Q52.Vector.limit = (v, m) => v.copy().limit(m);
+Q52.Vector.direction = (v) => (void 0)._$.atan2(v.y, v.x);
+Q52.Vector.magSq = (v) => v.x * v.x + v.y * v.y + v.z * v.z;
+Q52.Vector.mag = (v) => Math.sqrt(Q52.Vector.magSq(v));
+Q52.Vector.mult = (v, u) => v.copy().mult(u);
+Q52.Vector.normalize = (v) => v.copy().normalize();
+Q52.Vector.rem = (v, u) => v.copy().rem(u);
+Q52.Vector.sub = (v, u) => v.copy().sub(u);
+Q52.Vector.reflect = (v, n) => v.copy().reflect(n);
+Q52.Vector.random2D = () => new Q52.Vector().random2D();
+Q52.Vector.random3D = () => new Q52.Vector().random3D();
+Q52.Vector.fromAngle = (th, l) => new Q52.Vector().fromAngle(th, l);
+Q52.Vector.fromAngles = (th, ph, l) => new Q52.Vector().fromAngles(th, ph, l);
+Q52.renderers.webgpu = {};
+Q52.renderers.webgpu.canvas = ($, q) => {
   const c = $.canvas;
   if ($.colorMode) $.colorMode("rgb", 1);
   const CANVAS_FORMAT = navigator.gpu.getPreferredCanvasFormat();
@@ -4723,7 +4723,7 @@ struct Q5 {
     1
     // white
   ]);
-  let mainLayout = Q5.device.createBindGroupLayout({
+  let mainLayout = Q52.device.createBindGroupLayout({
     label: "mainLayout",
     entries: [
       {
@@ -4744,21 +4744,21 @@ struct Q5 {
     ]
   });
   $._mainLayout = mainLayout;
-  let uniformBuffer = Q5.device.createBuffer({
+  let uniformBuffer = Q52.device.createBuffer({
     size: 64,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
   });
   let createMainView = () => {
     let w = $.canvas.width, h = $.canvas.height, size = [w, h], format = "bgra8unorm";
-    mainView = Q5.device.createTexture({
+    mainView = Q52.device.createTexture({
       size,
       sampleCount: 4,
       format,
       usage: GPUTextureUsage.RENDER_ATTACHMENT
     }).createView();
     let usage = GPUTextureUsage.COPY_SRC | GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT;
-    $._frameA = frameB = Q5.device.createTexture({ label: "frameA", size, format, usage });
-    $._frameB = frameA = Q5.device.createTexture({ label: "frameB", size, format, usage });
+    $._frameA = frameB = Q52.device.createTexture({ label: "frameA", size, format, usage });
+    $._frameB = frameA = Q52.device.createTexture({ label: "frameB", size, format, usage });
     $._frameShaderCode = $._baseShaderCode + /* wgsl */
     `
 struct VertexParams {
@@ -4789,15 +4789,15 @@ fn fragMain(f: FragParams ) -> @location(0) vec4f {
 	return textureSample(tex, samp, f.texCoord);
 }
 `;
-    let frameShader = Q5.device.createShaderModule({
+    let frameShader = Q52.device.createShaderModule({
       label: "frameShader",
       code: $._frameShaderCode
     });
-    frameSampler = Q5.device.createSampler({
+    frameSampler = Q52.device.createSampler({
       magFilter: "linear",
       minFilter: "linear"
     });
-    frameLayout = Q5.device.createBindGroupLayout({
+    frameLayout = Q52.device.createBindGroupLayout({
       label: "frameLayout",
       entries: [
         {
@@ -4817,7 +4817,7 @@ fn fragMain(f: FragParams ) -> @location(0) vec4f {
         }
       ]
     });
-    let framePipelineLayout = Q5.device.createPipelineLayout({
+    let framePipelineLayout = Q52.device.createPipelineLayout({
       bindGroupLayouts: [frameLayout]
     });
     $._pipelineConfigs[0] = {
@@ -4831,8 +4831,8 @@ fn fragMain(f: FragParams ) -> @location(0) vec4f {
       primitive: { topology: "triangle-strip" },
       multisample: { count: 4 }
     };
-    $._pipelines[0] = Q5.device.createRenderPipeline($._pipelineConfigs[0]);
-    frameBindGroupA = Q5.device.createBindGroup({
+    $._pipelines[0] = Q52.device.createRenderPipeline($._pipelineConfigs[0]);
+    frameBindGroupA = Q52.device.createBindGroup({
       layout: frameLayout,
       entries: [
         { binding: 0, resource: { buffer: uniformBuffer } },
@@ -4840,7 +4840,7 @@ fn fragMain(f: FragParams ) -> @location(0) vec4f {
         { binding: 2, resource: frameA.createView() }
       ]
     });
-    frameBindGroupB = Q5.device.createBindGroup({
+    frameBindGroupB = Q52.device.createBindGroup({
       layout: frameLayout,
       entries: [
         { binding: 0, resource: { buffer: uniformBuffer } },
@@ -4852,7 +4852,7 @@ fn fragMain(f: FragParams ) -> @location(0) vec4f {
   $._createCanvas = (w, h, opt) => {
     q.ctx = q.drawingContext = c.getContext("webgpu");
     opt.format ??= navigator.gpu.getPreferredCanvasFormat();
-    opt.device ??= Q5.device;
+    opt.device ??= Q52.device;
     if (opt.alpha) opt.alphaMode = "premultiplied";
     $.ctx.configure(opt);
     createMainView();
@@ -4889,9 +4889,9 @@ fn fragMain(f: FragParams ) -> @location(0) vec4f {
       if (usingRGB) ({ r, g, b, a } = c2);
       else {
         a = c2.a;
-        if (c2.c != void 0) c2 = Q5.OKLCHtoRGB(c2.l, c2.c, c2.h);
-        else if (c2.l != void 0) c2 = Q5.HSLtoRGB(c2.h, c2.s, c2.l);
-        else c2 = Q5.HSLtoRGB(...Q5.HSBtoHSL(c2.h, c2.s, c2.b));
+        if (c2.c != void 0) c2 = Q52.OKLCHtoRGB(c2.l, c2.c, c2.h);
+        else if (c2.l != void 0) c2 = Q52.HSLtoRGB(c2.h, c2.s, c2.l);
+        else c2 = Q52.HSLtoRGB(...Q52.HSBtoHSL(c2.h, c2.s, c2.b));
         [r, g, b] = c2;
       }
     }
@@ -4950,7 +4950,7 @@ fn fragMain(f: FragParams ) -> @location(0) vec4f {
   $._getStrokeIdx = () => strokeIdx;
   $._setStrokeIdx = (v) => strokeIdx = v;
   $._doStroke = () => doStroke = true;
-  const MAX_TRANSFORMS = $._isGraphics ? 1e3 : Q5.MAX_TRANSFORMS, MATRIX_SIZE = 16, MAX_TRANSFORM_BUFFER_SIZE = MAX_TRANSFORMS * MATRIX_SIZE * 4, transforms = new Float32Array(MAX_TRANSFORMS * MATRIX_SIZE);
+  const MAX_TRANSFORMS = $._isGraphics ? 1e3 : Q52.MAX_TRANSFORMS, MATRIX_SIZE = 16, MAX_TRANSFORM_BUFFER_SIZE = MAX_TRANSFORMS * MATRIX_SIZE * 4, transforms = new Float32Array(MAX_TRANSFORMS * MATRIX_SIZE);
   let matrix, matrices = [], matricesIdxStack = [], matrixIdx = 0, matrixDirty = false;
   $._getMatrixIdx = () => matrixIdx;
   matrices.push([
@@ -5283,7 +5283,7 @@ fn fragMain(f: FragParams ) -> @location(0) vec4f {
     const tempBindGroup = frameBindGroupA;
     frameBindGroupA = frameBindGroupB;
     frameBindGroupB = tempBindGroup;
-    encoder = Q5.device.createCommandEncoder();
+    encoder = Q52.device.createCommandEncoder();
     $._pass = pass = encoder.beginRenderPass({
       label: "q5-webgpu",
       colorAttachments: [
@@ -5310,21 +5310,21 @@ fn fragMain(f: FragParams ) -> @location(0) vec4f {
     let transformsSize = matrices.length * MATRIX_SIZE * 4;
     if (!transformsBuffer || transformsBuffer.size < transformsSize) {
       if (transformsBuffer) transformsBuffer.destroy();
-      transformsBuffer = Q5.device.createBuffer({
+      transformsBuffer = Q52.device.createBuffer({
         size: Math.min(transformsSize * 2, MAX_TRANSFORM_BUFFER_SIZE),
         usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
       });
     }
-    Q5.device.queue.writeBuffer(transformsBuffer, 0, transforms.subarray(0, matrices.length * MATRIX_SIZE));
+    Q52.device.queue.writeBuffer(transformsBuffer, 0, transforms.subarray(0, matrices.length * MATRIX_SIZE));
     let colorsSize = colorStackIndex * 4;
     if (!colorsBuffer || colorsBuffer.size < colorsSize) {
       if (colorsBuffer) colorsBuffer.destroy();
-      colorsBuffer = Q5.device.createBuffer({
+      colorsBuffer = Q52.device.createBuffer({
         size: colorsSize * 2,
         usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
       });
     }
-    Q5.device.queue.writeBuffer(colorsBuffer, 0, colorStack.subarray(0, colorStackIndex));
+    Q52.device.queue.writeBuffer(colorsBuffer, 0, colorStack.subarray(0, colorStackIndex));
     $._uniforms[0] = $.width;
     $._uniforms[1] = $.height;
     $._uniforms[2] = $.halfWidth;
@@ -5339,9 +5339,9 @@ fn fragMain(f: FragParams ) -> @location(0) vec4f {
     $._uniforms[11] = $.keyCode;
     $._uniforms[12] = $.keyIsPressed ? 1 : 0;
     $._uniforms[13] = yDir;
-    Q5.device.queue.writeBuffer(uniformBuffer, 0, $._uniforms);
+    Q52.device.queue.writeBuffer(uniformBuffer, 0, $._uniforms);
     if (!mainBindGroup || lastTransformsBuffer !== transformsBuffer || lastColorsBuffer !== colorsBuffer) {
-      mainBindGroup = Q5.device.createBindGroup({
+      mainBindGroup = Q52.device.createBindGroup({
         layout: mainLayout,
         entries: [
           { binding: 0, resource: { buffer: uniformBuffer } },
@@ -5357,24 +5357,24 @@ fn fragMain(f: FragParams ) -> @location(0) vec4f {
     let shapesVertSize = shapesVertIdx * 4;
     if (!shapesVertBuff || shapesVertBuff.size < shapesVertSize) {
       if (shapesVertBuff) shapesVertBuff.destroy();
-      shapesVertBuff = Q5.device.createBuffer({
+      shapesVertBuff = Q52.device.createBuffer({
         size: shapesVertSize * 2,
         usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST
       });
     }
-    Q5.device.queue.writeBuffer(shapesVertBuff, 0, shapesVertStack.subarray(0, shapesVertIdx));
+    Q52.device.queue.writeBuffer(shapesVertBuff, 0, shapesVertStack.subarray(0, shapesVertIdx));
     $._pass.setVertexBuffer(0, shapesVertBuff);
     if (imgVertIdx) {
       $._pass.setPipeline($._pipelines[2]);
       let imgVertSize = imgVertIdx * 4;
       if (!imgVertBuff || imgVertBuff.size < imgVertSize) {
         if (imgVertBuff) imgVertBuff.destroy();
-        imgVertBuff = Q5.device.createBuffer({
+        imgVertBuff = Q52.device.createBuffer({
           size: imgVertSize * 2,
           usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST
         });
       }
-      Q5.device.queue.writeBuffer(imgVertBuff, 0, imgVertStack.subarray(0, imgVertIdx));
+      Q52.device.queue.writeBuffer(imgVertBuff, 0, imgVertStack.subarray(0, imgVertIdx));
     }
     if (charStack.length) {
       let charOffset = 0;
@@ -5385,12 +5385,12 @@ fn fragMain(f: FragParams ) -> @location(0) vec4f {
       let totalTextSize = charOffset * 4;
       if (!charBuffer || charBuffer.size < totalTextSize) {
         if (charBuffer) charBuffer.destroy();
-        charBuffer = Q5.device.createBuffer({
+        charBuffer = Q52.device.createBuffer({
           size: totalTextSize * 2,
           usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
         });
       }
-      Q5.device.queue.writeBuffer(charBuffer, 0, charDataBuffer.buffer, 0, totalTextSize);
+      Q52.device.queue.writeBuffer(charBuffer, 0, charDataBuffer.buffer, 0, totalTextSize);
       let textOffset = 0;
       for (let textData of textStack) {
         textDataBuffer.set(textData, textOffset);
@@ -5399,14 +5399,14 @@ fn fragMain(f: FragParams ) -> @location(0) vec4f {
       let totalMetadataSize = textOffset * 4;
       if (!textBuffer || textBuffer.size < totalMetadataSize) {
         if (textBuffer) textBuffer.destroy();
-        textBuffer = Q5.device.createBuffer({
+        textBuffer = Q52.device.createBuffer({
           label: "textBuffer",
           size: totalMetadataSize * 2,
           usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
         });
       }
-      Q5.device.queue.writeBuffer(textBuffer, 0, textDataBuffer.buffer, 0, totalMetadataSize);
-      $._textBindGroup = Q5.device.createBindGroup({
+      Q52.device.queue.writeBuffer(textBuffer, 0, textDataBuffer.buffer, 0, totalMetadataSize);
+      $._textBindGroup = Q52.device.createBindGroup({
         label: "textBindGroup",
         layout: textBindGroupLayout,
         entries: [
@@ -5415,14 +5415,14 @@ fn fragMain(f: FragParams ) -> @location(0) vec4f {
         ]
       });
     }
-    Q5.device.queue.writeBuffer(
+    Q52.device.queue.writeBuffer(
       rectBuffer,
       0,
       rectStack.buffer,
       rectStack.byteOffset,
       rectStackIdx * 4
     );
-    Q5.device.queue.writeBuffer(
+    Q52.device.queue.writeBuffer(
       ellipseBuffer,
       0,
       ellipseStack.buffer,
@@ -5437,7 +5437,7 @@ fn fragMain(f: FragParams ) -> @location(0) vec4f {
           let mode = blendModeNames[v];
           for (let i2 = 1; i2 < $._pipelines.length; i2++) {
             $._pipelineConfigs[i2].fragment.targets[0].blend = $.blendConfigs[mode];
-            $._pipelines[i2] = Q5.device.createRenderPipeline($._pipelineConfigs[i2]);
+            $._pipelines[i2] = Q52.device.createRenderPipeline($._pipelineConfigs[i2]);
           }
           continue;
         }
@@ -5502,7 +5502,7 @@ fn fragMain(f: FragParams ) -> @location(0) vec4f {
     pass.setBindGroup(0, frameBindGroup);
     pass.draw(4);
     pass.end();
-    Q5.device.queue.submit([encoder.finish()]);
+    Q52.device.queue.submit([encoder.finish()]);
     $._pass = pass = encoder = null;
     drawStack.length = 0;
     colorIndex = 2;
@@ -5524,7 +5524,7 @@ fn fragMain(f: FragParams ) -> @location(0) vec4f {
     let texs = $._texturesToDestroy;
     $._buffers = [];
     $._texturesToDestroy = [];
-    Q5.device.queue.onSubmittedWorkDone().then(() => {
+    Q52.device.queue.onSubmittedWorkDone().then(() => {
       for (let b of bufs) b.destroy();
       for (let t of texs) t.destroy();
     });
@@ -5570,7 +5570,7 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
 	return f.color;
 }
 `;
-  let shapesShader = Q5.device.createShaderModule({
+  let shapesShader = Q52.device.createShaderModule({
     label: "shapesShader",
     code: $._shapesShaderCode
   });
@@ -5588,7 +5588,7 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
       // matrixIndex
     ]
   };
-  let shapesPipelineLayout = Q5.device.createPipelineLayout({
+  let shapesPipelineLayout = Q52.device.createPipelineLayout({
     label: "shapesPipelineLayout",
     bindGroupLayouts: [mainLayout]
   });
@@ -5608,7 +5608,7 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
     primitive: { topology: "triangle-strip", stripIndexFormat: "uint32" },
     multisample: { count: 4 }
   };
-  $._pipelines[1] = Q5.device.createRenderPipeline($._pipelineConfigs[1]);
+  $._pipelines[1] = Q52.device.createRenderPipeline($._pipelineConfigs[1]);
   const addVert = (x, y, ci, ti) => {
     let v = shapesVertStack, i = shapesVertIdx;
     v[i++] = x;
@@ -5999,19 +5999,19 @@ fn vertexMain(v: VertexParams) -> FragParams {
 	return transparent;
 }
 	`;
-  let rectShader = Q5.device.createShaderModule({
+  let rectShader = Q52.device.createShaderModule({
     label: "rectShader",
     code: $._rectShaderCode
   });
   let rectIndices = new Uint16Array([0, 1, 2, 2, 1, 3]);
-  let rectIndexBuffer = Q5.device.createBuffer({
+  let rectIndexBuffer = Q52.device.createBuffer({
     size: rectIndices.byteLength,
     usage: GPUBufferUsage.INDEX,
     mappedAtCreation: true
   });
   new Uint16Array(rectIndexBuffer.getMappedRange()).set(rectIndices);
   rectIndexBuffer.unmap();
-  let rectBindGroupLayout = Q5.device.createBindGroupLayout({
+  let rectBindGroupLayout = Q52.device.createBindGroupLayout({
     entries: [
       {
         binding: 0,
@@ -6020,7 +6020,7 @@ fn vertexMain(v: VertexParams) -> FragParams {
       }
     ]
   });
-  let rectPipelineLayout = Q5.device.createPipelineLayout({
+  let rectPipelineLayout = Q52.device.createPipelineLayout({
     label: "rectPipelineLayout",
     bindGroupLayouts: [mainLayout, rectBindGroupLayout]
   });
@@ -6045,14 +6045,14 @@ fn vertexMain(v: VertexParams) -> FragParams {
     primitive: { topology: "triangle-list" },
     multisample: { count: 4 }
   };
-  $._pipelines[5] = Q5.device.createRenderPipeline($._pipelineConfigs[5]);
-  let rectStack = new Float32Array(Q5.MAX_RECTS * 16);
+  $._pipelines[5] = Q52.device.createRenderPipeline($._pipelineConfigs[5]);
+  let rectStack = new Float32Array(Q52.MAX_RECTS * 16);
   let rectStackIdx = 0;
-  let rectBuffer = Q5.device.createBuffer({
+  let rectBuffer = Q52.device.createBuffer({
     size: rectStack.byteLength,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
   });
-  let rectBindGroup = Q5.device.createBindGroup({
+  let rectBindGroup = Q52.device.createBindGroup({
     layout: rectBindGroupLayout,
     entries: [{ binding: 0, resource: { buffer: rectBuffer } }]
   });
@@ -6303,19 +6303,19 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
 	return vec4f(f.stroke.rgb, f.stroke.a * strokeAlpha);
 }
 `;
-  let ellipseShader = Q5.device.createShaderModule({
+  let ellipseShader = Q52.device.createShaderModule({
     label: "ellipseShader",
     code: $._ellipseShaderCode
   });
   let fanIndices = new Uint16Array([0, 1, 2, 0, 2, 3, 0, 3, 4, 0, 4, 5, 0, 5, 6, 0, 6, 7]);
-  let ellipseIndexBuffer = Q5.device.createBuffer({
+  let ellipseIndexBuffer = Q52.device.createBuffer({
     size: fanIndices.byteLength,
     usage: GPUBufferUsage.INDEX,
     mappedAtCreation: true
   });
   new Uint16Array(ellipseIndexBuffer.getMappedRange()).set(fanIndices);
   ellipseIndexBuffer.unmap();
-  let ellipseBindGroupLayout = Q5.device.createBindGroupLayout({
+  let ellipseBindGroupLayout = Q52.device.createBindGroupLayout({
     entries: [
       {
         binding: 0,
@@ -6324,7 +6324,7 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
       }
     ]
   });
-  let ellipsePipelineLayout = Q5.device.createPipelineLayout({
+  let ellipsePipelineLayout = Q52.device.createPipelineLayout({
     label: "ellipsePipelineLayout",
     bindGroupLayouts: [mainLayout, ellipseBindGroupLayout]
   });
@@ -6349,14 +6349,14 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
     primitive: { topology: "triangle-list" },
     multisample: { count: 4 }
   };
-  $._pipelines[6] = Q5.device.createRenderPipeline($._pipelineConfigs[6]);
-  let ellipseStack = new Float32Array(Q5.MAX_ELLIPSES * 16);
+  $._pipelines[6] = Q52.device.createRenderPipeline($._pipelineConfigs[6]);
+  let ellipseStack = new Float32Array(Q52.MAX_ELLIPSES * 16);
   let ellipseStackIdx = 0;
-  let ellipseBuffer = Q5.device.createBuffer({
+  let ellipseBuffer = Q52.device.createBuffer({
     size: ellipseStack.byteLength,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
   });
-  let ellipseBindGroup = Q5.device.createBindGroup({
+  let ellipseBindGroup = Q52.device.createBindGroup({
     layout: ellipseBindGroupLayout,
     entries: [{ binding: 0, resource: { buffer: ellipseBuffer } }]
   });
@@ -6496,12 +6496,12 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
 	return applyTint(texColor, f.tintColor);
 }
 	`;
-  let imageShader = Q5.device.createShaderModule({
+  let imageShader = Q52.device.createShaderModule({
     label: "imageShader",
     code: $._imageShaderCode
   });
   $._videoShaderCode = $._imageShaderCode.replace("texture_2d<f32>", "texture_external").replace("textureSample", "textureSampleBaseClampToEdge");
-  let videoShader = Q5.device.createShaderModule({
+  let videoShader = Q52.device.createShaderModule({
     label: "videoShader",
     code: $._videoShaderCode
   });
@@ -6519,7 +6519,7 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
       // imageAlpha
     ]
   };
-  let textureLayout = Q5.device.createBindGroupLayout({
+  let textureLayout = Q52.device.createBindGroupLayout({
     label: "textureLayout",
     entries: [
       {
@@ -6534,7 +6534,7 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
       }
     ]
   });
-  let videoTextureLayout = Q5.device.createBindGroupLayout({
+  let videoTextureLayout = Q52.device.createBindGroupLayout({
     label: "videoTextureLayout",
     entries: [
       {
@@ -6549,11 +6549,11 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
       }
     ]
   });
-  let imagePipelineLayout = Q5.device.createPipelineLayout({
+  let imagePipelineLayout = Q52.device.createPipelineLayout({
     label: "imagePipelineLayout",
     bindGroupLayouts: [mainLayout, textureLayout]
   });
-  let videoPipelineLayout = Q5.device.createPipelineLayout({
+  let videoPipelineLayout = Q52.device.createPipelineLayout({
     label: "videoPipelineLayout",
     bindGroupLayouts: [mainLayout, videoTextureLayout]
   });
@@ -6573,7 +6573,7 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
     primitive: { topology: "triangle-strip", stripIndexFormat: "uint32" },
     multisample: { count: 4 }
   };
-  $._pipelines[2] = Q5.device.createRenderPipeline($._pipelineConfigs[2]);
+  $._pipelines[2] = Q52.device.createRenderPipeline($._pipelineConfigs[2]);
   $._pipelineConfigs[3] = {
     label: "videoPipeline",
     layout: videoPipelineLayout,
@@ -6590,7 +6590,7 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
     primitive: { topology: "triangle-strip", stripIndexFormat: "uint32" },
     multisample: { count: 4 }
   };
-  $._pipelines[3] = Q5.device.createRenderPipeline($._pipelineConfigs[3]);
+  $._pipelines[3] = Q52.device.createRenderPipeline($._pipelineConfigs[3]);
   $._textureBindGroups = [];
   if (c) {
     c.convertToBlob = async (opt) => {
@@ -6602,13 +6602,13 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
       let texture = $._texture;
       if (makeFrame) $._beginRender();
       let w = texture.width, h = texture.height, bytesPerRow = Math.ceil(w * 4 / 256) * 256;
-      let buffer = Q5.device.createBuffer({
+      let buffer = Q52.device.createBuffer({
         size: bytesPerRow * h,
         usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
       });
-      let en = Q5.device.createCommandEncoder();
+      let en = Q52.device.createCommandEncoder();
       en.copyTextureToBuffer({ texture }, { buffer, bytesPerRow, rowsPerImage: h }, { width: w, height: h });
-      Q5.device.queue.submit([en.finish()]);
+      Q52.device.queue.submit([en.finish()]);
       await buffer.mapAsync(GPUMapMode.READ);
       let pad = new Uint8Array(buffer.getMappedRange());
       let data = new Uint8Array(w * h * 4);
@@ -6636,7 +6636,7 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
     };
   }
   let makeSampler = (filter) => {
-    $._imageSampler = Q5.device.createSampler({
+    $._imageSampler = Q52.device.createSampler({
       magFilter: filter,
       minFilter: filter
     });
@@ -6650,14 +6650,14 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
     if (!texture) {
       if (img._texture) return;
       let textureSize = [cnv.width, cnv.height, 1];
-      texture = Q5.device.createTexture({
+      texture = Q52.device.createTexture({
         size: textureSize,
         format: CANVAS_FORMAT,
         usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
       });
       let src = { source: cnv };
       if (cnv.tagName == "IMG") src.colorSpace = $.canvas.colorSpace;
-      Q5.device.queue.copyExternalImageToTexture(
+      Q52.device.queue.copyExternalImageToTexture(
         src,
         {
           texture,
@@ -6668,7 +6668,7 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
     }
     texture.index = tIdx + vidFrames;
     img._texture = texture;
-    $._textureBindGroups[texture.index] = Q5.device.createBindGroup({
+    $._textureBindGroups[texture.index] = Q52.device.createBindGroup({
       label: img.src || texture.label || "canvas",
       layout: textureLayout,
       entries: [
@@ -6702,13 +6702,42 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
       if (bytesPerRow % 256 !== 0) {
         throw new Error(`External pixel row pitch must be 256-byte aligned: ${bytesPerRow}`);
       }
-      Q5.device.queue.writeTexture(
+      Q52.device.queue.writeTexture(
         { texture: g._texture },
         data,
         { bytesPerRow, rowsPerImage: g.height },
         [g.width, g.height, 1]
       );
       g.modified = false;
+      g.frameCount++;
+      return true;
+    };
+    return g;
+  };
+  $.createCompressedImage = (w, h, format = "bc3-rgba-unorm") => {
+    if (!Q52.device.features.has("texture-compression-bc")) {
+      throw new Error("WebGPU texture-compression-bc is required for compressed GV textures");
+    }
+    let g = $._g.createImage(w, h);
+    let texture = Q52.device.createTexture({
+      size: [w, h, 1],
+      format,
+      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST
+    });
+    $._addTexture(g, texture);
+    g.modified = false;
+    g.setCompressedPixels = (data) => {
+      const blockBytes = format === "bc1-rgba-unorm" ? 8 : 16;
+      const bytesPerRow = Math.ceil(w / 4) * blockBytes;
+      if (bytesPerRow % 256 !== 0) {
+        throw new Error(`Compressed GV row pitch must be 256-byte aligned: ${bytesPerRow}`);
+      }
+      Q52.device.queue.writeTexture(
+        { texture: g._texture },
+        data,
+        { bytesPerRow, rowsPerImage: Math.ceil(h / 4) },
+        [w, h, 1]
+      );
       g.frameCount++;
       return true;
     };
@@ -6722,7 +6751,7 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
     g.noLoop();
     let _loop = g.loop;
     g.loop = () => {
-      if (Q5.experimental) return _loop();
+      if (Q52.experimental) return _loop();
       console.error("Looping graphics in q5 WebGPU is disabled. See issue https://github.com/q5js/q5.js/issues/104");
     };
     if (g.canvas.webgpu) {
@@ -6765,7 +6794,7 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
     }
     if (img.modified) {
       let cnv = img.canvas;
-      Q5.device.queue.copyExternalImageToTexture(
+      Q52.device.queue.copyExternalImageToTexture(
         { source: cnv },
         { texture: img._texture, colorSpace: $.canvas.colorSpace },
         [cnv.width, cnv.height, 1]
@@ -6804,9 +6833,9 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
         img.frameCount++;
       }
     } else {
-      let externalTexture = Q5.device.importExternalTexture({ source: img });
+      let externalTexture = Q52.device.importExternalTexture({ source: img });
       $._textureBindGroups.push(
-        Q5.device.createBindGroup({
+        Q52.device.createBindGroup({
           layout: videoTextureLayout,
           entries: [
             { binding: 0, resource: $._imageSampler },
@@ -6934,11 +6963,11 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
 	return color;
 }
 `;
-  let textShader = Q5.device.createShaderModule({
+  let textShader = Q52.device.createShaderModule({
     label: "textShader",
     code: $._textShaderCode
   });
-  let textBindGroupLayout = Q5.device.createBindGroupLayout({
+  let textBindGroupLayout = Q52.device.createBindGroupLayout({
     label: "textBindGroupLayout",
     entries: [
       {
@@ -6953,13 +6982,13 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
       }
     ]
   });
-  let fontSampler = Q5.device.createSampler({
+  let fontSampler = Q52.device.createSampler({
     minFilter: "linear",
     magFilter: "linear",
     mipmapFilter: "linear",
     maxAnisotropy: 16
   });
-  let fontBindGroupLayout = Q5.device.createBindGroupLayout({
+  let fontBindGroupLayout = Q52.device.createBindGroupLayout({
     label: "fontBindGroupLayout",
     entries: [
       {
@@ -6979,7 +7008,7 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
       }
     ]
   });
-  let fontPipelineLayout = Q5.device.createPipelineLayout({
+  let fontPipelineLayout = Q52.device.createPipelineLayout({
     bindGroupLayouts: [mainLayout, fontBindGroupLayout, textBindGroupLayout]
   });
   $._pipelineConfigs[4] = {
@@ -6994,7 +7023,7 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
     primitive: { topology: "triangle-strip", stripIndexFormat: "uint32" },
     multisample: { count: 4 }
   };
-  $._pipelines[4] = Q5.device.createRenderPipeline($._pipelineConfigs[4]);
+  $._pipelines[4] = Q52.device.createRenderPipeline($._pipelineConfigs[4]);
   class MsdfFont {
     constructor(bindGroup, lineHeight, chars, kernings) {
       this.bindGroup = bindGroup;
@@ -7041,19 +7070,19 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
       return "";
     }
     let imgSize = [img.width, img.height, 1];
-    let texture = Q5.device.createTexture({
+    let texture = Q52.device.createTexture({
       label: `MSDF ${fontName}`,
       size: imgSize,
       format: "rgba8unorm",
       usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
     });
-    Q5.device.queue.copyExternalImageToTexture({ source: img }, { texture }, imgSize);
+    Q52.device.queue.copyExternalImageToTexture({ source: img }, { texture }, imgSize);
     if (typeof atlas.chars == "string") {
-      atlas.chars = Q5.CSV.parse(atlas.chars, " ");
-      atlas.kernings = Q5.CSV.parse(atlas.kernings, " ");
+      atlas.chars = Q52.CSV.parse(atlas.chars, " ");
+      atlas.kernings = Q52.CSV.parse(atlas.kernings, " ");
     }
     let charCount = atlas.chars.length;
-    let charsBuffer = Q5.device.createBuffer({
+    let charsBuffer = Q52.device.createBuffer({
       size: charCount * 32,
       usage: GPUBufferUsage.STORAGE,
       mappedAtCreation: true
@@ -7077,7 +7106,7 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
       o += 8;
     }
     charsBuffer.unmap();
-    let fontBindGroup = Q5.device.createBindGroup({
+    let fontBindGroup = Q52.device.createBindGroup({
       label: "fontBindGroup",
       layout: fontBindGroupLayout,
       entries: [
@@ -7115,7 +7144,7 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
       let fontName2 = url;
       fonts[fontName2] = null;
       url = `https://q5js.org/fonts/${fontName2}-msdf.json`;
-      if (Q5.online == false || !navigator.onLine) {
+      if (Q52.online == false || !navigator.onLine) {
         url = `/node_modules/q5/builtinFonts/${fontName2}-msdf.json`;
       }
       ext = "json";
@@ -7195,8 +7224,8 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
   };
   let charStack = [], textStack = [];
   let lineWidths = new Array(100);
-  let charDataBuffer = new Float32Array(Q5.MAX_CHARS * 4);
-  let textDataBuffer = new Float32Array(Q5.MAX_TEXTS * 8);
+  let charDataBuffer = new Float32Array(Q52.MAX_CHARS * 4);
+  let textDataBuffer = new Float32Array(Q52.MAX_TEXTS * 8);
   let measureText = (font, text2, charCallback) => {
     let maxWidth = 0, offsetX = 0, offsetY = 0, line = 0, printedCharCount = 0, nextCharCode = text2.charCodeAt(0);
     for (let i = 0; i < text2.length; ++i) {
@@ -7392,7 +7421,7 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
     let module;
     if (opt.module) module = opt.module;
     else {
-      module = Q5.device.createShaderModule({
+      module = Q52.device.createShaderModule({
         label: label + "Shader",
         code: $._baseShaderCode + shader
       });
@@ -7402,11 +7431,11 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
     let _dataBindLayout = null;
     let _dataBindGroup = null;
     if (opt.data) {
-      _dataBuffer = Q5.device.createBuffer({
+      _dataBuffer = Q52.device.createBuffer({
         size: opt.data.byteLength,
         usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
       });
-      _dataBindLayout = Q5.device.createBindGroupLayout({
+      _dataBindLayout = Q52.device.createBindGroupLayout({
         entries: [
           {
             binding: 0,
@@ -7415,7 +7444,7 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
           }
         ]
       });
-      _dataBindGroup = Q5.device.createBindGroup({
+      _dataBindGroup = Q52.device.createBindGroup({
         layout: _dataBindLayout,
         entries: [{ binding: 0, resource: { buffer: _dataBuffer } }]
       });
@@ -7423,11 +7452,11 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
     }
     if (!layout) {
       if (_dataBindLayout) {
-        layout = Q5.device.createPipelineLayout({
+        layout = Q52.device.createPipelineLayout({
           bindGroupLayouts: [mainLayout, _dataBindLayout]
         });
       } else {
-        layout = Q5.device.createPipelineLayout({
+        layout = Q52.device.createPipelineLayout({
           bindGroupLayouts: [mainLayout]
         });
       }
@@ -7457,10 +7486,10 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
     };
     let id = $._pipelines.length;
     $._pipelineConfigs[id] = pipelineConfig;
-    $._pipelines[id] = Q5.device.createRenderPipeline(pipelineConfig);
+    $._pipelines[id] = Q52.device.createRenderPipeline(pipelineConfig);
     if (_dataBindGroup) {
       $._customBindHandlers[id] = (pass2) => {
-        Q5.device.queue.writeBuffer(_dataBuffer, 0, opt.data);
+        Q52.device.queue.writeBuffer(_dataBuffer, 0, opt.data);
         pass2.setBindGroup(1, _dataBindGroup);
       };
     }
@@ -7491,7 +7520,7 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
     } else {
       code = def.slice(0, defVertIdx) + code;
     }
-    let shader = Q5.device.createShaderModule({
+    let shader = Q52.device.createShaderModule({
       label: type + "Shader",
       code
     });
@@ -7500,7 +7529,7 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
     let config = Object.assign({}, $._pipelineConfigs[pipelineIndex]);
     config.vertex.module = config.fragment.module = shader;
     let pl = plCounters[type];
-    $._pipelines[pl] = Q5.device.createRenderPipeline(config);
+    $._pipelines[pl] = Q52.device.createRenderPipeline(config);
     $._pipelines[pl].shader = shader;
     shader.pipelineIndex = pl;
     plCounters[type]++;
@@ -7554,24 +7583,24 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
     _remove();
   };
 };
-Q5.THRESHOLD = 1;
-Q5.GRAY = 2;
-Q5.OPAQUE = 3;
-Q5.INVERT = 4;
-Q5.POSTERIZE = 5;
-Q5.DILATE = 6;
-Q5.ERODE = 7;
-Q5.BLUR = 8;
-Q5.MAX_TRANSFORMS = 2097152;
-Q5.MAX_RECTS = 200200;
-Q5.MAX_ELLIPSES = 200200;
-Q5.MAX_CHARS = 1e5;
-Q5.MAX_TEXTS = 1e4;
-Q5.initWebGPU = async () => {
-  Q5._gpuTask ??= Q5._requestGPU();
-  return Q5._gpuTask;
+Q52.THRESHOLD = 1;
+Q52.GRAY = 2;
+Q52.OPAQUE = 3;
+Q52.INVERT = 4;
+Q52.POSTERIZE = 5;
+Q52.DILATE = 6;
+Q52.ERODE = 7;
+Q52.BLUR = 8;
+Q52.MAX_TRANSFORMS = 2097152;
+Q52.MAX_RECTS = 200200;
+Q52.MAX_ELLIPSES = 200200;
+Q52.MAX_CHARS = 1e5;
+Q52.MAX_TEXTS = 1e4;
+Q52.initWebGPU = async () => {
+  Q52._gpuTask ??= Q52._requestGPU();
+  return Q52._gpuTask;
 };
-Q5._requestGPU = async () => {
+Q52._requestGPU = async () => {
   try {
     if (!navigator.gpu) {
       console.warn("q5 WebGPU not supported on this browser! Use Google Chrome or Edge.");
@@ -7585,7 +7614,11 @@ Q5._requestGPU = async () => {
       console.warn("q5 WebGPU could not start! No appropriate GPUAdapter found, Vulkan may need to be enabled.");
       return false;
     }
-    let device = await adapter.requestDevice();
+    const requiredFeatures = [];
+    if (adapter.features.has("texture-compression-bc")) {
+      requiredFeatures.push("texture-compression-bc");
+    }
+    let device = await adapter.requestDevice({ requiredFeatures });
     const vertexStorageLimit = device.limits.maxStorageBuffersInVertexStage ?? device.limits.maxStorageBuffersPerShaderStage;
     if (vertexStorageLimit < 3) {
       console.warn("q5 WebGPU requires vertex storage buffers, which are not supported by this device.");
@@ -7593,16 +7626,16 @@ Q5._requestGPU = async () => {
     }
     const maxStorage = device.limits.maxStorageBufferBindingSize;
     let min = Math.min, floor = Math.floor;
-    Q5.MAX_TRANSFORMS = min(Q5.MAX_TRANSFORMS, floor(maxStorage / 64));
-    Q5.MAX_RECTS = min(Q5.MAX_RECTS, floor(maxStorage / 64));
-    Q5.MAX_ELLIPSES = min(Q5.MAX_ELLIPSES, floor(maxStorage / 64));
-    Q5.MAX_CHARS = min(Q5.MAX_CHARS, floor(maxStorage / 16));
-    Q5.MAX_TEXTS = min(Q5.MAX_TEXTS, floor(maxStorage / 32));
+    Q52.MAX_TRANSFORMS = min(Q52.MAX_TRANSFORMS, floor(maxStorage / 64));
+    Q52.MAX_RECTS = min(Q52.MAX_RECTS, floor(maxStorage / 64));
+    Q52.MAX_ELLIPSES = min(Q52.MAX_ELLIPSES, floor(maxStorage / 64));
+    Q52.MAX_CHARS = min(Q52.MAX_CHARS, floor(maxStorage / 16));
+    Q52.MAX_TEXTS = min(Q52.MAX_TEXTS, floor(maxStorage / 32));
     device.lost.then((e) => {
       console.error("WebGPU crashed!");
       console.error(e);
     });
-    Q5.device = device;
+    Q52.device = device;
     if (typeof window == "object") {
       window.addEventListener("pagehide", () => {
         if (device) device.destroy();
@@ -7614,9 +7647,9 @@ Q5._requestGPU = async () => {
     return false;
   }
 };
-Q5.WebGPU = async function(scope, parent) {
-  if (!scope || scope == "global") Q5._hasGlobal = true;
-  let supportsWebGPU = await Q5.initWebGPU(), q = new Q5(scope, parent, "webgpu" + (supportsWebGPU ? "" : "-fallback"));
+Q52.WebGPU = async function(scope, parent) {
+  if (!scope || scope == "global") Q52._hasGlobal = true;
+  let supportsWebGPU = await Q52.initWebGPU(), q = new Q52(scope, parent, "webgpu" + (supportsWebGPU ? "" : "-fallback"));
   await q.ready;
   return q;
 };
@@ -7984,18 +8017,18 @@ var parseLangs = function(data, lang) {
 var unaccent = function(s) {
   return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 };
-Object.defineProperty(Q5, "lang", {
-  get: () => Q5._lang,
+Object.defineProperty(Q52, "lang", {
+  get: () => Q52._lang,
   set: (val) => {
-    if (val == Q5._lang) return;
-    Q5._lang = val;
+    if (val == Q52._lang) return;
+    Q52._lang = val;
     if (val == "en") {
-      Q5._userFns = Q5._userFns.slice(0, 19);
-      Q5._libMap = Q5._userFnsMap = {};
+      Q52._userFns = Q52._userFns.slice(0, 19);
+      Q52._libMap = Q52._userFnsMap = {};
       return;
     }
     for (let className in classLangs) {
-      let target = className == "Q5" ? Q5 : Q5[className] ? Q5[className].prototype : null;
+      let target = className == "Q5" ? Q52 : Q52[className] ? Q52[className].prototype : null;
       if (!target) continue;
       let map = parseLangs(classLangs[className], val);
       for (let name in map) {
@@ -8011,36 +8044,36 @@ Object.defineProperty(Q5, "lang", {
         });
       }
     }
-    Q5._libMap = parseLangs(libLangs, val);
-    Q5._userFnsMap = parseLangs(userLangs, val);
-    Q5._userFns.push(...Object.values(Q5._userFnsMap));
+    Q52._libMap = parseLangs(libLangs, val);
+    Q52._userFnsMap = parseLangs(userLangs, val);
+    Q52._userFns.push(...Object.values(Q52._userFnsMap));
   }
 });
-Q5.lang = "en";
+Q52.lang = "en";
 for (let l of supportedLangs) {
   if (typeof window == "object") {
     let secondNL = libLangs.indexOf("\n", libLangs.indexOf("\n", 8) + 1);
     let m = parseLangs(libLangs.slice(0, secondNL), l);
     window[m.createCanvas] = window[m.Canvas] = function() {
-      Q5.lang = l;
+      Q52.lang = l;
       return window.Canvas(...arguments);
     };
   }
   let userFnsMap = parseLangs(userLangs, l);
   for (let name in userFnsMap) {
     let translatedName = userFnsMap[name];
-    if (Q5.hasOwnProperty(translatedName)) continue;
-    Object.defineProperty(Q5, translatedName, {
-      get: () => Q5[name],
+    if (Q52.hasOwnProperty(translatedName)) continue;
+    Object.defineProperty(Q52, translatedName, {
+      get: () => Q52[name],
       set: (fn) => {
-        Q5.lang = l;
-        Q5[name] = fn;
+        Q52.lang = l;
+        Q52[name] = fn;
       }
     });
   }
 }
-Q5.applyLang = function(q, libs, classes) {
-  let val = Q5._lang;
+Q52.applyLang = function(q, libs, classes) {
+  let val = Q52._lang;
   if (val == "en") return;
   let map = parseLangs(libs, val);
   for (let name in map) {
@@ -8069,8 +8102,8 @@ Q5.applyLang = function(q, libs, classes) {
     }
   }
 };
-Q5.modules.lang = ($) => {
-  let userFnsMap = Q5._userFnsMap;
+Q52.modules.lang = ($) => {
+  let userFnsMap = Q52._userFnsMap;
   for (let name in userFnsMap) {
     let translatedName = userFnsMap[name];
     Object.defineProperty($, translatedName, {
@@ -8078,15 +8111,15 @@ Q5.modules.lang = ($) => {
       set: (fn) => $[name] = fn
     });
   }
-  let m = Q5._libMap;
+  let m = Q52._libMap;
   if (m.Canvas) $[m.createCanvas] = $[m.Canvas] = $.Canvas;
 };
-Q5.addHook("init", (q) => {
-  let m = Q5._libMap;
+Q52.addHook("init", (q) => {
+  let m = Q52._libMap;
   for (let name in m) {
     let translatedName = m[name];
     q[translatedName] = q[name];
-    if (Q5._lang == "es") {
+    if (Q52._lang == "es") {
       let unaccentedName = unaccent(translatedName);
       if (unaccentedName != translatedName) {
         q[unaccentedName] = q[name];
@@ -8094,8 +8127,8 @@ Q5.addHook("init", (q) => {
     }
   }
 });
-Q5.addHook("predraw", (q) => {
-  let m = Q5._libMap;
+Q52.addHook("predraw", (q) => {
+  let m = Q52._libMap;
   if (!m.mouseX) return;
   let props = [
     "frameCount",
@@ -8115,7 +8148,7 @@ Q5.addHook("predraw", (q) => {
   for (let p of props) {
     if (!m[p]) continue;
     q[m[p]] = q[p];
-    if (Q5._lang == "es") {
+    if (Q52._lang == "es") {
       let unaccentedName = unaccent(m[p]);
       if (unaccentedName != m[p]) {
         q[unaccentedName] = q[p];
@@ -8155,7 +8188,7 @@ var runPython = async function() {
     }
   }
   code = code.startsWith("from q5") ? code.slice(code.indexOf("\n") + 1) : code;
-  const useWebGPU = !code.slice(0, code.indexOf("\n")).includes("C2D"), q = useWebGPU ? await Q5.WebGPU() : new Q5();
+  const useWebGPU = !code.slice(0, code.indexOf("\n")).includes("C2D"), q = useWebGPU ? await Q52.WebGPU() : new Q52();
   q._py = true;
   await q.ready;
   let pyReady;
@@ -8193,7 +8226,7 @@ async def __run(q):
     let file = scripts[0].src || scripts[0]["data-filename"] || "sketch.py";
     file = file.split("/").at(-1);
     lineNum -= 2;
-    if (Q5.friendlyError) Q5.friendlyError(file, lineNum, err);
+    if (Q52.friendlyError) Q52.friendlyError(file, lineNum, err);
     else console.error(`Error in ${file} on line ${lineNum}:
 
 ${err}`);
@@ -8326,15 +8359,79 @@ async function readBinaryFromUrl(value) {
   }
   throw new Error("No supported binary loader available in this runtime. Expected fetch() or __readFileSync().");
 }
+function openNativeFileStream(value) {
+  const url = toUrl(value);
+  const open = globalThis.mystral?.openFileStream;
+  if (typeof open !== "function") return null;
+  return open(url.href);
+}
+function readNativeRange(stream, offset, size) {
+  if (!stream || typeof stream.readSlice !== "function") return null;
+  return toUint8Array(stream.readSlice(offset, size));
+}
+function parseGvHeader(bytes) {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  return {
+    width: view.getUint32(0, true),
+    height: view.getUint32(4, true),
+    frame_count: view.getUint32(8, true),
+    fps: view.getFloat32(12, true),
+    format: view.getUint32(16, true),
+    frame_bytes: view.getUint32(20, true)
+  };
+}
+function parseGvEntries(bytes, header) {
+  const indexSize = header.frame_count * 16;
+  const indexOffset = bytes.byteLength - indexSize;
+  const view = new DataView(bytes.buffer, bytes.byteOffset + indexOffset, indexSize);
+  const entries = new Array(header.frame_count);
+  let inputCapacity = 0;
+  for (let i = 0; i < header.frame_count; i++) {
+    const offset = i * 16;
+    const entry = {
+      address: Number(view.getBigUint64(offset, true)),
+      size: Number(view.getBigUint64(offset + 8, true))
+    };
+    entries[i] = entry;
+    inputCapacity = Math.max(inputCapacity, entry.size);
+  }
+  return { entries, inputCapacity };
+}
+function gvCompressedPixelFormat(format) {
+  return {
+    1: "bc1-rgba-unorm",
+    3: "bc2-rgba-unorm",
+    5: "bc3-rgba-unorm",
+    7: "bc7-rgba-unorm"
+  }[format] ?? null;
+}
+function resolvePixelFormat(header, options = {}) {
+  if (options.pixelFormat) return options.pixelFormat;
+  const compressedFormat = gvCompressedPixelFormat(header.format);
+  const supportsCompressed = compressedFormat && options.supportsCompressedTextures === true;
+  const preferCompressed = options.preferCompressed ?? supportsCompressed;
+  if (preferCompressed && supportsCompressed) {
+    return compressedFormat;
+  }
+  return options.outputFormat ?? "rgba8unorm";
+}
 var wasmExportsCache = null;
+var configuredWasmPath = null;
+async function initGvWasm(options = {}) {
+  if (options.wasmPath !== void 0) {
+    configuredWasmPath = options.wasmPath;
+  }
+  return loadGvWasmModule(configuredWasmPath, options);
+}
 async function loadGvWasmModule(customPath = null, options = {}) {
   if (wasmExportsCache) {
     return wasmExportsCache;
   }
   const { debug = false, logger = console } = options;
   const candidates = [];
-  if (customPath) {
-    candidates.push(toUrl(customPath));
+  const requestedPath = customPath ?? configuredWasmPath;
+  if (requestedPath) {
+    candidates.push(toUrl(requestedPath));
   }
   candidates.push(...moduleCandidates);
   let lastError = null;
@@ -8377,73 +8474,20 @@ async function loadGvWasmModule(customPath = null, options = {}) {
   }
   throw new Error(`Failed to load GV WASM module from any candidate path: ${lastError?.message ?? "unknown error"}`);
 }
-async function readGvHeaderFromBuffer(bytes, options = {}) {
-  const { debug = false, logger = console, wasmPath = null } = options;
-  if (debug && typeof logger?.log === "function") {
-    logger.log(`[gv-wasm] header input bytes: ${bytes.byteLength}`);
-    logger.log(`[gv-wasm] requested wasm path: ${wasmPath ?? "(default candidates)"}`);
-  }
-  const exports = await loadGvWasmModule(wasmPath, { debug, logger });
-  if (!exports || typeof exports.read_gv_header !== "function" || typeof exports.gv_alloc !== "function" || !exports.memory) {
-    throw new Error("GV WASM exports do not expose the raw GV header ABI");
-  }
-  const inputPtr = exports.gv_alloc(bytes.byteLength);
-  const outputPtr = exports.gv_alloc(24);
-  if (debug && typeof logger?.log === "function") {
-    logger.log(`[gv-wasm] allocated input=${inputPtr}, output=${outputPtr}`);
-  }
-  if (!inputPtr || !outputPtr) {
-    throw new Error("GV WASM allocation failed");
-  }
-  try {
-    new Uint8Array(exports.memory.buffer, inputPtr, bytes.byteLength).set(bytes);
-    if (debug && typeof logger?.log === "function") {
-      logger.log(`[gv-wasm] calling read_gv_header(input=${inputPtr}, length=${bytes.byteLength}, output=${outputPtr})`);
-    }
-    const status = exports.read_gv_header(inputPtr, bytes.byteLength, outputPtr);
-    if (debug && typeof logger?.log === "function") {
-      logger.log(`[gv-wasm] read_gv_header status: ${status}`);
-    }
-    if (status !== 0) {
-      throw new Error(`GV WASM header decode failed with status ${status}`);
-    }
-    const view = new DataView(exports.memory.buffer, outputPtr, 24);
-    const header = {
-      width: view.getUint32(0, true),
-      height: view.getUint32(4, true),
-      frame_count: view.getUint32(8, true),
-      fps: view.getFloat32(12, true),
-      format: view.getUint32(16, true),
-      frame_bytes: view.getUint32(20, true)
-    };
-    if (debug && typeof logger?.log === "function") {
-      logger.log("[gv-wasm] decoded header object:", header);
-    }
-    if (debug && typeof logger?.log === "function") {
-      logger.log("[gv-wasm] decoded header:", header);
-    }
-    return header;
-  } finally {
-    if (typeof exports.gv_dealloc === "function") {
-      exports.gv_dealloc(inputPtr, bytes.byteLength);
-      exports.gv_dealloc(outputPtr, 24);
-    }
-  }
-}
-async function readGvHeaderFromAsset(assetPath, options = {}) {
-  const { wasmPath = null } = options;
-  const bytes = await readBinaryFromUrl(assetPath);
-  return readGvHeaderFromBuffer(bytes, { ...options, wasmPath });
-}
 var GvVideo = class {
   constructor(bytes, header, wasm, inputPtr, outputPtr, outputCapacity, options = {}) {
     this.bytes = bytes;
     this.header = header;
     this.wasm = wasm;
     this.inputPtr = inputPtr;
+    this.inputCapacity = options.inputCapacity ?? bytes.byteLength;
+    this.entries = options.entries ?? null;
     this.outputPtr = outputPtr;
     this.outputCapacity = outputCapacity;
     this.pixelFormat = options.pixelFormat ?? "bgra8unorm";
+    this.metadata = header;
+    this.isCompressed = this.pixelFormat.startsWith("bc");
+    this.mode = "memory";
     this.wasmPath = options.wasmPath ?? null;
     this.debug = options.debug ?? false;
     this.debugFrames = options.debugFrames ?? false;
@@ -8511,19 +8555,45 @@ var GvVideo = class {
     }
     const frameIndex = this.currentFrame;
     this._pendingFrame = Promise.resolve().then(() => {
-      const decode = this.pixelFormat === "bgra8unorm" ? this.wasm.read_gv_frame_bgra : this.wasm.read_gv_frame_rgba;
-      const size = decode(
-        this.inputPtr,
-        this.bytes.byteLength,
-        frameIndex,
-        this.outputPtr,
-        this.outputCapacity
-      );
+      let size;
+      if (this.entries) {
+        const entry = this.entries[frameIndex];
+        const compressed = this.bytes.subarray(entry.address, entry.address + entry.size);
+        new Uint8Array(this.wasm.memory.buffer, this.inputPtr, entry.size).set(compressed);
+        if (this.isCompressed) {
+          size = this.wasm.read_gv_compressed_frame_data(
+            this.inputPtr,
+            entry.size,
+            this.outputPtr,
+            this.outputCapacity
+          );
+        } else {
+          const decode = this.pixelFormat === "bgra8unorm" ? this.wasm.read_gv_frame_bgra_data : this.wasm.read_gv_frame_rgba_data;
+          size = decode(
+            this.inputPtr,
+            entry.size,
+            this.header.format,
+            this.header.width,
+            this.header.height,
+            this.outputPtr,
+            this.outputCapacity
+          );
+        }
+      } else {
+        const decode = this.isCompressed ? this.wasm.read_gv_frame_compressed : this.pixelFormat === "bgra8unorm" ? this.wasm.read_gv_frame_bgra : this.wasm.read_gv_frame_rgba;
+        size = decode(
+          this.inputPtr,
+          this.bytes.byteLength,
+          frameIndex,
+          this.outputPtr,
+          this.outputCapacity
+        );
+      }
       if (this.debugFrames && typeof this.logger?.log === "function") {
-        this.logger.log(`[gv-wasm] RGBA frame ${frameIndex} decode status/size: ${size}`);
+        this.logger.log(`[gv-wasm] ${this.pixelFormat} frame ${frameIndex} decode status/size: ${size}`);
       }
       if (size < 0) {
-        throw new Error(`GV WASM RGBA frame decode failed with status ${size}`);
+        throw new Error(`GV WASM ${this.pixelFormat} frame decode failed with status ${size}`);
       }
       return new Uint8Array(this.wasm.memory.buffer, this.outputPtr, size);
     }).then((frame) => {
@@ -8548,24 +8618,199 @@ var GvVideo = class {
     this.bytes = null;
   }
 };
+var GvStreamingVideo = class {
+  constructor(stream, header, entries, wasm, inputPtr, inputCapacity, outputPtr, options = {}) {
+    this.stream = stream;
+    this.header = header;
+    this.entries = entries;
+    this.wasm = wasm;
+    this.inputPtr = inputPtr;
+    this.inputCapacity = inputCapacity;
+    this.outputPtr = outputPtr;
+    this.outputCapacity = options.outputCapacity ?? header.frame_bytes;
+    this.pixelFormat = options.pixelFormat;
+    this.metadata = header;
+    this.isCompressed = this.pixelFormat?.startsWith("bc") ?? false;
+    this.mode = "streaming";
+    this.state = "stopped";
+    this.loop = false;
+    this.currentFrame = 0;
+    this.currentTime = 0;
+    this.duration = header.frame_count / header.fps;
+    this._startedAt = 0;
+    this._pendingFrame = null;
+    this._decodedFrame = -1;
+  }
+  play() {
+    if (this.state === "playing") return;
+    this._startedAt = Date.now() - this.currentTime * 1e3;
+    this.state = "playing";
+  }
+  pause() {
+    if (this.state === "playing") this._updateClock();
+    this.state = "paused";
+  }
+  stop() {
+    this.state = "stopped";
+    this.currentTime = 0;
+    this.currentFrame = 0;
+  }
+  seek(seconds) {
+    this.currentTime = Math.max(0, Math.min(Number(seconds) || 0, this.duration));
+    this.currentFrame = Math.min(this.header.frame_count - 1, Math.floor(this.currentTime * this.header.fps));
+    if (this.state === "playing") this._startedAt = Date.now() - this.currentTime * 1e3;
+  }
+  setLoop(value) {
+    this.loop = Boolean(value);
+  }
+  _updateClock() {
+    if (this.state !== "playing") return;
+    let elapsed = (Date.now() - this._startedAt) / 1e3;
+    if (elapsed >= this.duration) {
+      if (this.loop) {
+        elapsed %= this.duration;
+        this._startedAt = Date.now() - elapsed * 1e3;
+      } else {
+        this.currentTime = this.duration;
+        this.currentFrame = this.header.frame_count - 1;
+        this.state = "stopped";
+        return;
+      }
+    }
+    this.currentTime = elapsed;
+    this.currentFrame = Math.min(this.header.frame_count - 1, Math.floor(elapsed * this.header.fps));
+  }
+  update() {
+    this._updateClock();
+    if (this._pendingFrame || this.currentFrame === this._decodedFrame) return this._pendingFrame;
+    const frameIndex = this.currentFrame;
+    const entry = this.entries[frameIndex];
+    this._pendingFrame = Promise.resolve().then(() => {
+      const compressed = readNativeRange(this.stream, entry.address, entry.size);
+      if (!compressed || compressed.byteLength !== entry.size) {
+        throw new Error(`Failed to read GV frame range ${frameIndex}`);
+      }
+      new Uint8Array(this.wasm.memory.buffer, this.inputPtr, entry.size).set(compressed);
+      let size;
+      if (this.isCompressed) {
+        size = this.wasm.read_gv_compressed_frame_data(
+          this.inputPtr,
+          entry.size,
+          this.outputPtr,
+          this.outputCapacity
+        );
+      } else {
+        const decode = this.pixelFormat === "bgra8unorm" ? this.wasm.read_gv_frame_bgra_data : this.wasm.read_gv_frame_rgba_data;
+        size = decode(
+          this.inputPtr,
+          entry.size,
+          this.header.format,
+          this.header.width,
+          this.header.height,
+          this.outputPtr,
+          this.outputCapacity
+        );
+      }
+      if (size < 0) throw new Error(`GV streaming frame decode failed with status ${size}`);
+      return new Uint8Array(this.wasm.memory.buffer, this.outputPtr, size);
+    }).then((frame) => {
+      this._decodedFrame = frameIndex;
+      this._pendingFrame = null;
+      return frame;
+    }, (error) => {
+      this._pendingFrame = null;
+      throw error;
+    });
+    return this._pendingFrame;
+  }
+  close() {
+    if (this.wasm && typeof this.wasm.gv_dealloc === "function") {
+      this.wasm.gv_dealloc(this.inputPtr, this.inputCapacity);
+      this.wasm.gv_dealloc(this.outputPtr, this.outputCapacity);
+    }
+    this.stream?.close?.();
+    this.stream = null;
+    this.wasm = null;
+  }
+};
+async function loadStreamingGvVideo(assetPath, options = {}) {
+  const logger = options.logger ?? console;
+  const stream = openNativeFileStream(assetPath);
+  if (!stream || options.streaming === false) {
+    if (options.debug && typeof logger.log === "function") {
+      logger.log(
+        `[gv-wasm] streaming unavailable: ${options.streaming === false ? "disabled" : "native file stream not found"}`
+      );
+    }
+    return null;
+  }
+  try {
+    const headerBytes = readNativeRange(stream, 0, 24);
+    if (!headerBytes || headerBytes.byteLength !== 24) throw new Error("Failed to read GV header range");
+    const header = parseGvHeader(headerBytes);
+    const pixelFormat = resolvePixelFormat(header, options);
+    if (options.debug && typeof logger.log === "function") {
+      logger.log(
+        `[gv-wasm] streaming source opened: size=${stream.size}, pixelFormat=${pixelFormat}`
+      );
+    }
+    const indexSize = header.frame_count * 16;
+    const index = readNativeRange(stream, stream.size - indexSize, indexSize);
+    if (!index || index.byteLength !== indexSize) throw new Error("Failed to read GV frame index");
+    const view = new DataView(index.buffer, index.byteOffset, index.byteLength);
+    const entries = new Array(header.frame_count);
+    let inputCapacity = 0;
+    for (let i = 0; i < header.frame_count; i++) {
+      const offset = i * 16;
+      const entry = {
+        address: Number(view.getBigUint64(offset, true)),
+        size: Number(view.getBigUint64(offset + 8, true))
+      };
+      entries[i] = entry;
+      inputCapacity = Math.max(inputCapacity, entry.size);
+    }
+    const wasm = await loadGvWasmModule(options.wasmPath ?? null, options);
+    const frameExport = pixelFormat.startsWith("bc") ? wasm.read_gv_compressed_frame_data : pixelFormat === "bgra8unorm" ? wasm.read_gv_frame_bgra_data : wasm.read_gv_frame_rgba_data;
+    if (typeof frameExport !== "function") {
+      stream.close?.();
+      return null;
+    }
+    const inputPtr = wasm.gv_alloc(inputCapacity);
+    const outputCapacity = pixelFormat.startsWith("bc") ? header.frame_bytes : header.width * header.height * 4;
+    const outputPtr = wasm.gv_alloc(outputCapacity);
+    if (!inputPtr || !outputPtr) throw new Error("GV streaming WASM allocation failed");
+    return new GvStreamingVideo(stream, header, entries, wasm, inputPtr, inputCapacity, outputPtr, {
+      ...options,
+      pixelFormat,
+      outputCapacity
+    });
+  } catch (error) {
+    stream.close?.();
+    throw error;
+  }
+}
 async function loadGvVideo(assetPath, options = {}) {
+  const streaming = await loadStreamingGvVideo(assetPath, options);
+  if (streaming) return streaming;
   const bytes = await readBinaryFromUrl(assetPath);
   const wasm = await loadGvWasmModule(options.wasmPath ?? null, options);
-  const header = await readGvHeaderFromBuffer(bytes, options);
-  const pixelFormat = options.pixelFormat ?? "bgra8unorm";
-  const frameExport = pixelFormat === "bgra8unorm" ? wasm.read_gv_frame_bgra : wasm.read_gv_frame_rgba;
+  const header = parseGvHeader(bytes);
+  const pixelFormat = resolvePixelFormat(header, options);
+  const { entries, inputCapacity } = parseGvEntries(bytes, header);
+  const frameExport = pixelFormat.startsWith("bc") ? wasm.read_gv_compressed_frame_data : pixelFormat === "bgra8unorm" ? wasm.read_gv_frame_bgra_data : wasm.read_gv_frame_rgba_data;
   if (typeof frameExport !== "function" || typeof wasm.gv_alloc !== "function" || !wasm.memory) {
     throw new Error("GV WASM exports do not expose the persistent RGBA frame ABI");
   }
-  const outputCapacity = header.width * header.height * 4;
-  const inputPtr = wasm.gv_alloc(bytes.byteLength);
+  const outputCapacity = pixelFormat.startsWith("bc") ? header.frame_bytes : header.width * header.height * 4;
+  const inputPtr = wasm.gv_alloc(inputCapacity);
   const outputPtr = wasm.gv_alloc(outputCapacity);
   if (!inputPtr || !outputPtr) {
     throw new Error("GV WASM persistent frame allocation failed");
   }
-  new Uint8Array(wasm.memory.buffer, inputPtr, bytes.byteLength).set(bytes);
   return new GvVideo(bytes, header, wasm, inputPtr, outputPtr, outputCapacity, {
     ...options,
+    entries,
+    inputCapacity,
     pixelFormat
   });
 }
@@ -8580,8 +8825,13 @@ var WASM_PATH = "./gv-wasm/gv_wasm.wasm";
 console.log("[GV debug] asset path:", ASSET_PATH);
 console.log("[GV debug] asset URL:", ASSET_URL.href);
 console.log("[GV debug] wasm path:", WASM_PATH);
-await Canvas(CANVAS_W, CANVAS_H);
+var gvQ5 = await Q5.WebGPU();
+if (!Q5.device || gvQ5._renderer !== "webgpu") {
+  throw new Error("GV sample requires a WebGPU renderer");
+}
+await gvQ5.createCanvas(CANVAS_W, CANVAS_H);
 console.log("[GV debug] Canvas ready");
+await initGvWasm({ wasmPath: WASM_PATH, debug: true });
 if (window.innerWidth !== CANVAS_W || window.innerHeight !== CANVAS_H) {
   console.error(
     `Canvas/window size mismatch: window is ${window.innerWidth}x${window.innerHeight}, expected ${CANVAS_W}x${CANVAS_H}. Run with --width ${CANVAS_W} --height ${CANVAS_H}.`
@@ -8610,22 +8860,26 @@ var gvFrameImage = null;
 var gvPlayer = null;
 var appliedFramePromise = null;
 var lastFpsLogFrame = -30;
-var gvPixelFormat = globalThis.navigator?.gpu?.getPreferredCanvasFormat?.() ?? "rgba8unorm";
+var gvUseCompressedTexture = false;
+var gvPixelFormat = "rgba8unorm";
 try {
-  console.log("[GV debug] starting GV header read");
-  gvMetadata = await readGvHeaderFromAsset(ASSET_URL, {
+  console.log("[GV debug] starting GV player load");
+  gvPlayer = await loadGvVideo(ASSET_URL, {
     debug: true,
-    wasmPath: WASM_PATH
+    supportsCompressedTextures: Boolean(
+      globalThis.Q5?.device?.features?.has?.("texture-compression-bc")
+    ),
+    outputFormat: globalThis.Q5?.device ? globalThis.navigator?.gpu?.getPreferredCanvasFormat?.() ?? "bgra8unorm" : "rgba8unorm"
   });
+  gvMetadata = gvPlayer.metadata;
+  gvUseCompressedTexture = gvPlayer.isCompressed;
+  gvPixelFormat = gvPlayer.pixelFormat;
   console.log("GV wasm metadata:", JSON.stringify(gvMetadata, null, 2));
   console.log(`GV asset path: ${ASSET_URL.href}`);
   console.log(`GV wasm path: ${WASM_PATH}`);
-  gvPlayer = await loadGvVideo(ASSET_URL, {
-    debug: false,
-    debugFrames: false,
-    wasmPath: WASM_PATH,
-    pixelFormat: gvPixelFormat
-  });
+  console.log(
+    `[GV debug] player mode=${gvPlayer.mode}, pixelFormat=${gvPlayer.pixelFormat}, compressed=${gvPlayer.isCompressed}`
+  );
   gvPlayer.setLoop(true);
   gvPlayer.play();
   console.log(
@@ -8633,8 +8887,10 @@ try {
   );
   const frame = await gvPlayer.update();
   console.log(`[GV debug] decoded ${gvPixelFormat} frame bytes: ${frame.byteLength}`);
-  gvFrameImage = createImage(gvMetadata.width, gvMetadata.height);
-  if (!gvFrameImage.setExternalPixels?.(frame, gvPixelFormat)) {
+  gvFrameImage = gvUseCompressedTexture ? createCompressedImage(gvMetadata.width, gvMetadata.height, gvPixelFormat) : createImage(gvMetadata.width, gvMetadata.height);
+  if (gvUseCompressedTexture) {
+    gvFrameImage.setCompressedPixels(frame);
+  } else if (!gvFrameImage.setExternalPixels?.(frame, gvPixelFormat)) {
     gvFrameImage.loadPixels();
     gvFrameImage.pixels.set(frame);
     gvFrameImage.updatePixels();
@@ -8659,7 +8915,9 @@ q5.draw = () => {
     if (framePromise && framePromise !== appliedFramePromise) {
       appliedFramePromise = framePromise;
       framePromise.then((frame) => {
-        if (!gvFrameImage.setExternalPixels?.(frame, gvPixelFormat)) {
+        if (gvUseCompressedTexture) {
+          gvFrameImage.setCompressedPixels(frame);
+        } else if (!gvFrameImage.setExternalPixels?.(frame, gvPixelFormat)) {
           gvFrameImage.loadPixels();
           gvFrameImage.pixels.set(frame);
           gvFrameImage.updatePixels();
