@@ -40,6 +40,10 @@ mystral run bundle-mouse.js
 .\bundle.ps1 image        # Windows
 bash ./bundle.sh image    # macOS
 mystral run bundle-image.js
+
+.\bundle.ps1 shader        # Windows
+bash ./bundle.sh shader    # macOS
+mystral run bundle-shader.js
 ```
 
 ## GV video playback
