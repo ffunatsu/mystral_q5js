@@ -54,14 +54,14 @@ Single GV playback:
 
 ```powershell
 .\bundle.ps1 gv
-.\mystralnative\build\Release\mystral.exe run bundle-gv.js
+mystral run bundle-gv.js
 ```
 
 Multi-GV playback:
 
 ```powershell
 .\bundle.ps1 gvs
-.\mystralnative\build\Release\mystral.exe run bundle-gvs.js
+mystral run bundle-gvs.js
 ```
 
 ![Multi-GV playback](docs/gvs_screenshot.png)
