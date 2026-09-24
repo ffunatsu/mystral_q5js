@@ -10,9 +10,9 @@ The local build uses this [fork](https://github.com/ffunatsu/mystralnative/tree/
 
 This project also includes a locally modified [q5.js implementation](q5.js) (based on v4.8.2) for Mystral WebGPU compatibility.
 
-( Also includes WebSocket, UDP(OSC), SharedMemory, FileRandomAccess(GV) tests for mystral extension. )
+( Also includes WebSocket, UDP(OSC), SharedMemory, FileRandomAccess(GV), Basic FFI tests for mystral extension. )
 
-See the [Mystral FFI guide](docs/mystral-ffi.md) for calling Windows DLLs from V8 JavaScript, including the Rust test DLL in [`ffi-test`](ffi-test/).
+See the [Mystral FFI guide](docs/mystral-ffi.md) for calling dynamic libraries from V8 JavaScript, including the Rust test DLL in [`ffi-test`](ffi-test/).
 
 > [!Note]
 > This project is AI-assisted, using GitHub Copilot.
