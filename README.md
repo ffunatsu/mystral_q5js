@@ -122,4 +122,6 @@ macOS:
 
 Same as Mystral Native, q5.js, and [libsharedmemory](https://github.com/kyr0/libsharedmemory)
 
+gv-wasm's license is the same to [rust-gv-video](https://github.com/ffunatsu/rust-gv-video)'s license.
+
 Please also check ones for licenses.
