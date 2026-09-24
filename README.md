@@ -6,9 +6,11 @@ Minimal [q5.js](https://q5js.org/) samples (experiments) for [Mystral Native](ht
 
 The local build uses this [fork](https://github.com/ffunatsu/mystralnative/tree/dev).
 
+ 👉 **You can DOWNLOAD forked mystral PRECOMPILED binaries from [Releases](https://github.com/ffunatsu/mystral_q5js/releases).**
+
 This project also includes a locally modified [q5.js implementation](q5.js) (based on v4.8.2) for Mystral WebGPU compatibility.
 
-( Also includes WebSocket/UDP(OSC)/SharedMemory tests for extension. )
+( Also includes WebSocket, UDP(OSC), SharedMemory, FileRandomAccess(GV) tests for mystral extension. )
 
 See the [Mystral FFI guide](docs/mystral-ffi.md) for calling Windows DLLs from V8 JavaScript, including the Rust test DLL in [`ffi-test`](ffi-test/).
 
@@ -42,6 +44,10 @@ mystral run bundle-mouse.js
 .\bundle.ps1 image        # Windows
 bash ./bundle.sh image    # macOS
 mystral run bundle-image.js
+
+.\bundle.ps1 shader        # Windows
+bash ./bundle.sh shader    # macOS
+mystral run bundle-shader.js
 ```
 
 ## GV video playback
@@ -52,14 +58,14 @@ Single GV playback:
 
 ```powershell
 .\bundle.ps1 gv
-.\mystralnative\build\Release\mystral.exe run bundle-gv.js
+mystral run bundle-gv.js
 ```
 
 Multi-GV playback:
 
 ```powershell
 .\bundle.ps1 gvs
-.\mystralnative\build\Release\mystral.exe run bundle-gvs.js
+mystral run bundle-gvs.js
 ```
 
 ![Multi-GV playback](docs/gvs_screenshot.png)
@@ -72,9 +78,8 @@ Windows (PowerShell):
 git submodule update --init --recursive
 Set-Location mystralnative
 
-C:\vcpkg\vcpkg.exe install curl:x64-windows
+C:\vcpkg\vcpkg.exe install curl:x64-node scripts/download-deps.mjs
 
-# Download the native dependencies. This includes SDL3 and libuv.
 node scripts/download-deps.mjs
 
 cmake -B build `
@@ -95,6 +100,11 @@ cmake --build build --config Release --parallel
 macOS:
 
 ```bash
+git submodule update --init --recursive
+cd mystralnative
+
+node scripts/download-deps.mjs
+
 cmake -B build \
   -DMYSTRAL_USE_V8=ON -DMYSTRAL_USE_QUICKJS=OFF \
   -DMYSTRAL_USE_DAWN=ON -DMYSTRAL_USE_WGPU=OFF \
@@ -119,5 +129,7 @@ macOS:
 ## License
 
 Same as Mystral Native, q5.js, and [libsharedmemory](https://github.com/kyr0/libsharedmemory)
+
+gv-wasm's license is the same to [rust-gv-video](https://github.com/ffunatsu/rust-gv-video)'s license.
 
 Please also check ones for licenses.
