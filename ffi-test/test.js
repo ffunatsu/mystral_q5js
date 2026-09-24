@@ -26,6 +26,18 @@ try {
   const version = ffiTest.function("ffi_test_version", "int", []);
   logStage("ffi_test_version bound");
 
+  logStage("binding ffi_test_add");
+  const add = ffiTest.function("ffi_test_add", "int", ["int", "int"]);
+  logStage("ffi_test_add bound");
+
+  logStage("binding ffi_test_add_double");
+  const addDouble = ffiTest.function(
+    "ffi_test_add_double",
+    "double",
+    ["double", "double"]
+  );
+  logStage("ffi_test_add_double bound");
+
   logStage("binding ffi_test_connect");
   const connect = ffiTest.function(
     "ffi_test_connect",
@@ -50,6 +62,14 @@ try {
   const apiVersion = version();
   logStage("ffi_test_version returned: " + apiVersion);
 
+  logStage("calling ffi_test_add(20, 22)");
+  const sum = add(20, 22);
+  logStage("ffi_test_add returned: " + sum);
+
+  logStage("calling ffi_test_add_double(1.25, 2.75)");
+  const doubleSum = addDouble(1.25, 2.75);
+  logStage("ffi_test_add_double returned: " + doubleSum);
+
   logStage("calling ffi_test_connect");
   const handle = connect("virtual-arduino", 115200);
   logStage("ffi_test_connect returned");
@@ -64,8 +84,8 @@ try {
     const written = write(handle, data, data.byteLength);
     logStage("ffi_test_write returned: " + written);
 
-    logStage("result: " + JSON.stringify({ apiVersion, written }));
-    if (apiVersion !== 1 || written !== data.byteLength) {
+    logStage("result: " + JSON.stringify({ apiVersion, sum, doubleSum, written }));
+    if (apiVersion !== 1 || sum !== 42 || doubleSum !== 4 || written !== data.byteLength) {
       throw new Error("Unexpected FFI result");
     }
     logStage("test passed");

@@ -52,33 +52,20 @@ The code that allocates a native handle should also provide the function that re
 
 ## Current support and limitations
 
-The type parser recognizes these scalar and memory types:
+The type parser recognizes these scalar and memory types, and `infix` generates
+the native call trampoline from the complete signature at bind time:
 
-- Return types: `void`, `int`, `size_t`, and `pointer`
+- Return types: `void`, `int`, `size_t`, `float`, `double`, `string`, and `pointer`
 - Argument types: `string`, `int`, `size_t`, `float`, `double`, `pointer`, and `buffer`
 
-However, this first implementation does **not** yet combine those types
-arbitrarily. The native dispatcher currently has these concrete call shapes:
+These types can be combined in one signature. Structures, callbacks,
+variadic functions, asynchronous calls, and arbitrary C++ APIs are not
+supported by this JavaScript adapter yet. `buffer` is currently an input-only
+type, and native pointers remain opaque V8 external values.
 
-| Return type | Argument types | Example |
-| --- | --- | --- |
-| `void` | none | `void reset()` |
-| `int` | none | `int version()` |
-| `size_t` | none | `size_t count()` |
-| `pointer` | none | `void* create()` |
-| `pointer` | `string`, `int` | `void* connect(const char*, int)` |
-| `int` | `pointer`, `buffer`, `size_t` | `int write(void*, const void*, size_t)` |
-| `void` | `pointer` | `void close(void*)` |
-
-For example, the Rust test's `ffi_test_version()` works because it is the
-`int version()` row above. A declaration such as `function("add", "int",
-["int", "int"])` can be parsed, but calling it currently raises an
-`Unsupported FFI signature` error. Structures, callbacks, asynchronous calls,
-floating-point return values, and arbitrary C++ APIs are not supported yet.
-
-The next step for a truly general FFI is to replace this signature dispatch
-with a call engine such as `libffi` or `dyncall`. Until then, treat the table
-above as the authoritative compatibility list.
+The runtime vendors [`infix`](https://github.com/sanko/infix) under
+`mystralnative/third_party/infix`. Its source is dual-licensed under the MIT
+License or Artistic License 2.0; see the included `LICENSE-MIT` and `LICENSE-A2`.
 
 ## Rust DLL example
 

@@ -14,6 +14,9 @@ This project also includes a locally modified [q5.js implementation](q5.js) (bas
 
 See the [Mystral FFI guide](docs/mystral-ffi.md) for calling dynamic libraries from V8 JavaScript, including the Rust test DLL in [`ffi-test`](ffi-test/).
 
+The FFI uses the vendored [infix](https://github.com/sanko/infix) library,
+dual-licensed under the MIT License or Artistic License 2.0.
+
 > [!Note]
 > This project is AI-assisted, using GitHub Copilot.
 

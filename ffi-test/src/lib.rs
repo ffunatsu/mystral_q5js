@@ -57,3 +57,13 @@ pub unsafe extern "C" fn ffi_test_close(handle: *mut c_void) {
 pub unsafe extern "C" fn ffi_test_version() -> c_int {
     1
 }
+
+#[no_mangle]
+pub unsafe extern "C" fn ffi_test_add(left: c_int, right: c_int) -> c_int {
+    left + right
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn ffi_test_add_double(left: f64, right: f64) -> f64 {
+    left + right
+}
