@@ -1900,7 +1900,7 @@ var init_q5 = __esm({
               let lineWidth = ctx.measureText(line2).width;
               if (lineWidth > maxWidth) maxWidth = lineWidth;
             }
-            let imgW = Math.ceil(maxWidth), imgH = Math.ceil(leading * lines.length + descent);
+            let imgW = Math.max(1, Math.ceil(maxWidth)), imgH = Math.max(1, Math.ceil(leading * lines.length + descent));
             img = $.createImage.call($, imgW, imgH, {
               pixelDensity: $._pixelDensity,
               defaultImageScale: 1 / $._pixelDensity
@@ -6635,6 +6635,54 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
         let g = $._g.createImage(w, h, opt);
         $._makeDrawable(g);
         g.modified = true;
+        g.setExternalPixels = (data, format = CANVAS_FORMAT) => {
+          if (!g._texture || !data) return false;
+          if (format !== CANVAS_FORMAT) {
+            throw new Error(`External pixel format ${format} does not match canvas format ${CANVAS_FORMAT}`);
+          }
+          const bytesPerRow = g.width * 4;
+          if (bytesPerRow % 256 !== 0) {
+            throw new Error(`External pixel row pitch must be 256-byte aligned: ${bytesPerRow}`);
+          }
+          Q52.device.queue.writeTexture(
+            { texture: g._texture },
+            data,
+            { bytesPerRow, rowsPerImage: g.height },
+            [g.width, g.height, 1]
+          );
+          g.modified = false;
+          g.frameCount++;
+          return true;
+        };
+        return g;
+      };
+      $.createCompressedImage = (w, h, format = "bc3-rgba-unorm") => {
+        if (!Q52.device.features.has("texture-compression-bc")) {
+          throw new Error("WebGPU texture-compression-bc is required for compressed GV textures");
+        }
+        let g = $._g.createImage(w, h);
+        let texture = Q52.device.createTexture({
+          size: [w, h, 1],
+          format,
+          usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST
+        });
+        $._addTexture(g, texture);
+        g.modified = false;
+        g.setCompressedPixels = (data) => {
+          const blockBytes = format === "bc1-rgba-unorm" ? 8 : 16;
+          const bytesPerRow = Math.ceil(w / 4) * blockBytes;
+          if (bytesPerRow % 256 !== 0) {
+            throw new Error(`Compressed GV row pitch must be 256-byte aligned: ${bytesPerRow}`);
+          }
+          Q52.device.queue.writeTexture(
+            { texture: g._texture },
+            data,
+            { bytesPerRow, rowsPerImage: Math.ceil(h / 4) },
+            [w, h, 1]
+          );
+          g.frameCount++;
+          return true;
+        };
         return g;
       };
       let _createGraphics = $.createGraphics;
@@ -7508,7 +7556,11 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
           console.warn("q5 WebGPU could not start! No appropriate GPUAdapter found, Vulkan may need to be enabled.");
           return false;
         }
-        let device = await adapter.requestDevice();
+        const requiredFeatures = [];
+        if (adapter.features.has("texture-compression-bc")) {
+          requiredFeatures.push("texture-compression-bc");
+        }
+        let device = await adapter.requestDevice({ requiredFeatures });
         const vertexStorageLimit = device.limits.maxStorageBuffersInVertexStage ?? device.limits.maxStorageBuffersPerShaderStage;
         if (vertexStorageLimit < 3) {
           console.warn("q5 WebGPU requires vertex storage buffers, which are not supported by this device.");
@@ -7522,6 +7574,7 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
         Q52.MAX_CHARS = min(Q52.MAX_CHARS, floor(maxStorage / 16));
         Q52.MAX_TEXTS = min(Q52.MAX_TEXTS, floor(maxStorage / 32));
         device.lost.then((e) => {
+          if (!e || e.reason === void 0 && e.message === void 0) return;
           console.error("WebGPU crashed!");
           console.error(e);
         });
@@ -8205,7 +8258,8 @@ window._runPy = _run_py
 });
 
 // mystral-shim.js
-var isMystral = typeof global === "undefined";
+var isMystral = typeof window !== "undefined" && typeof global === "undefined" && (typeof document === "undefined" || typeof document.getElementsByTagName !== "function");
+globalThis.isMystral = isMystral;
 if (isMystral) {
   globalThis.global = globalThis;
   globalThis.__mystral = true;
