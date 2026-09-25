@@ -4067,18 +4067,18 @@ Q52.modules.sound = ($, q) => {
   $.getAudioContext = () => Q52.aud;
   $.userStartAudio = () => {
     if (globalThis.__mystral && !Q52.aud) {
-      Q52.aud = { state: "running", resume() {
+      Q52.aud = window.AudioContext ? window.AudioContext() : { state: "running", resume() {
       } };
     }
     if (window.AudioContext) {
       if (Q52._offlineAudio) {
         Q52._offlineAudio = false;
         Q52.aud = new window.AudioContext();
+      }
+      if (!Q52.soundOut && Q52.aud.createGain) {
         Q52.soundOut = Q52.aud.createGain();
         Q52.soundOut.connect(Q52.aud.destination);
-        for (let inst of Q52.instances) {
-          inst._userAudioStarted();
-        }
+        for (let inst of Q52.instances) inst._userAudioStarted();
       }
       return Q52.aud.resume();
     }
@@ -4112,7 +4112,7 @@ Q52.Sound = class {
   init() {
     if (!this.buffer.length) return;
     this.gainNode = Q52.aud.createGain();
-    this.pannerNode = Q52.aud.createStereoPanner();
+    this.pannerNode = Q52.aud.createStereoPanner ? Q52.aud.createStereoPanner() : this.gainNode;
     this.gainNode.connect(this.pannerNode);
     this.pannerNode.connect(Q52.soundOut);
     this.loaded = true;
@@ -4122,6 +4122,7 @@ Q52.Sound = class {
   _newSource(offset, duration) {
     let source = Q52.aud.createBufferSource();
     source.buffer = this.buffer;
+    if (source._setBuffer) source._setBuffer(this.buffer);
     source.connect(this.gainNode);
     source.loop = this._loop;
     source._startedAt = Q52.aud.currentTime;
