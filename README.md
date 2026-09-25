@@ -50,7 +50,7 @@ mystral run bundle-shader.js
 
 ## FFI extension
 
-See the [Mystral FFI guide](docs/mystral-ffi.md) for calling dynamic libraries from V8 JavaScript, including the Rust test DLL in [`ffi-test`](ffi-test/).
+See the [Mystral FFI guide (Experimental Fork)](docs/mystral-ffi.md) for calling dynamic libraries from V8 JavaScript, including the Rust test DLL in [`ffi-test`](ffi-test/).
 
 The FFI uses the vendored [infix](https://github.com/sanko/infix) library,
 dual-licensed under the MIT License or Artistic License 2.0.
