@@ -1467,6 +1467,7 @@ Q5.renderers.c2d.image = ($, q) => {
 
 		let g = $.createImage(1, 1, opt);
 		let pd = g._pixelDensity;
+
 		if (typeof window.Image != 'function' && typeof createImageBitmap == 'function') {
 			g.promise = fetch(url)
 				.then((res) => {
@@ -1475,16 +1476,20 @@ Q5.renderers.c2d.image = ($, q) => {
 				})
 				.then((bitmap) => {
 					delete g.then;
-					   g = $.createImage(Math.ceil(bitmap.width / pd), Math.ceil(bitmap.height / pd), opt);
+					g = $.createImage(Math.ceil(bitmap.width / pd), Math.ceil(bitmap.height / pd), opt);
 					g.defaultWidth = bitmap.width * $._defaultImageScale;
 					g.defaultHeight = bitmap.height * $._defaultImageScale;
 					g.naturalWidth = bitmap.width;
 					g.naturalHeight = bitmap.height;
-					g.ctx.putImageData({
-						width: bitmap.width,
-						height: bitmap.height,
-						data: new Uint8Array(bitmap._data)
-					}, 0, 0);
+					g.ctx.putImageData(
+						{
+							width: bitmap.width,
+							height: bitmap.height,
+							data: new Uint8Array(bitmap._data)
+						},
+						0,
+						0
+					);
 					bitmap.close?.();
 					if (cb) cb(g);
 					return g;
