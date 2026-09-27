@@ -1,7 +1,7 @@
 // mystral-shim.js
-var isMystral = typeof window !== "undefined" && typeof global === "undefined" && (typeof document === "undefined" || typeof document.getElementsByTagName !== "function");
-globalThis.isMystral = isMystral;
-if (isMystral) {
+var isMystral2 = typeof window !== "undefined" && typeof global === "undefined" && (typeof document === "undefined" || typeof document.getElementsByTagName !== "function");
+globalThis.isMystral = isMystral2;
+if (isMystral2) {
   globalThis.global = globalThis;
   globalThis.__mystral = true;
   globalThis.PointerEvent ??= function PointerEvent() {
@@ -9874,22 +9874,101 @@ if (typeof document == "object") {
   } else runPython();
 }
 
-// sound.js
-await Canvas();
-background("#101820");
-fill("#ffd166");
-circle(0, 0, 180);
-fill("#fcfdff");
-textAlign(CENTER, CENTER);
-textSize(28);
-text("q5 sound", 100, 100);
-userStartAudio();
-var sound = await loadSound("sound.wav");
-sound.volume = 0.35;
-sound.play();
-console.log("sound example ready", sound.loaded, sound.buffer.duration.toFixed(2) + "s");
-await new Promise((resolve) => setTimeout(resolve, 1200));
-process.exit(0);
+// utils.js
+async function initCanvas2(w, h) {
+  if (w == null && h == null || typeof w === "undefined" && typeof h === "undefined") {
+    await Canvas();
+  } else {
+    await Canvas(w, h);
+    if (isMystral) {
+      if (window.innerWidth !== w || window.innerHeight !== h) {
+        console.error(`Canvas/window size mismatch: window is ${window.innerWidth}x${window.innerHeight}, expected ${w}x${h}. Run with --width ${w} --height ${h}.`);
+        process.exit(1);
+      }
+    }
+  }
+}
+globalThis.initCanvas = initCanvas2;
+
+// 3d-texture.js
+var Canvas3 = initCanvas;
+await Canvas3(void 0, void 0, "webgpu");
+var width = window.innerWidth;
+var height = window.innerHeight;
+var pg3d;
+var pgTex;
+try {
+  pg3d = createGraphics(width, height, "3d");
+  pgTex = createGraphics(256, 256);
+} catch (err) {
+  console.error("createGraphics error:", err);
+}
+function updateTexture() {
+  pgTex.background(30, 40, 60);
+  const s = 32;
+  for (let x = 0; x < 256; x += s) {
+    for (let y = 0; y < 256; y += s) {
+      if ((x / s + y / s) % 2 === 0) {
+        pgTex.fill(220, 230, 255);
+        pgTex.noStroke();
+        pgTex.rect(x, y, s, s);
+      }
+    }
+  }
+  pgTex.fill(255, 80, 80);
+  pgTex.noStroke();
+  let cx = 128 + Math.cos(frameCount * 0.05) * 60;
+  let cy = 128 + Math.sin(frameCount * 0.05) * 60;
+  pgTex.circle(cx, cy, 50);
+  pgTex.fill(20);
+  pgTex.textSize(24);
+  pgTex.textAlign(CENTER, CENTER);
+  pgTex.text("WebGPU 3D", 128, 128);
+}
+q5.draw = function() {
+  if (!pg3d || !pgTex) return;
+  updateTexture();
+  console.log("pgTex debug:", { width: pgTex.width, height: pgTex.height, modified: pgTex.modified });
+  background("#101018");
+  pg3d.clear();
+  pg3d.camera(300, -250, 350, 0, 0, 0, 0, 1, 0);
+  pg3d.orbitControl(true);
+  pg3d.directionalLight(255, 255, 255, 0.5, 0.8, 0.6);
+  pg3d.ambientLight(100, 100, 120);
+  pg3d.texture(pgTex);
+  pg3d.push();
+  pg3d.translate(-90, 0, 0);
+  pg3d.rotateX(frameCount * 0.01);
+  pg3d.rotateY(frameCount * 0.015);
+  pg3d.fill(255, 255, 255);
+  pg3d.box(110);
+  pg3d.pop();
+  pg3d.push();
+  pg3d.translate(90, 0, 0);
+  pg3d.rotateY(frameCount * 0.02);
+  pg3d.fill(255, 255, 255);
+  pg3d.sphere(60, 24, 18);
+  pg3d.pop();
+  pg3d.noTexture();
+  pg3d.push();
+  pg3d.translate(0, 100, 0);
+  pg3d.rotateX(Math.PI / 2);
+  pg3d.fill(50, 60, 80);
+  pg3d.plane(320, 320);
+  pg3d.pop();
+  pg3d.flush();
+  imageMode(CENTER);
+  image(pg3d, 0, 0, width, height);
+  imageMode(CENTER);
+  image(pgTex, -width / 2 + 150, height / 2 - 150, 200, 200);
+  fill(255);
+  noStroke();
+  textSize(16);
+  textAlign(LEFT, TOP);
+  text("q5.js 3D WebGPU - Texture Mapping (texture(img))", 20, 20);
+  text("2D Texture Preview (pgTex)", 50, 260);
+  text("FPS: " + Math.round(frameRate()), 20, 45);
+};
 /**
  * q5.js
  * @version 4.8

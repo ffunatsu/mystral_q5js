@@ -1,7 +1,7 @@
 // mystral-shim.js
-var isMystral = typeof window !== "undefined" && typeof global === "undefined" && (typeof document === "undefined" || typeof document.getElementsByTagName !== "function");
-globalThis.isMystral = isMystral;
-if (isMystral) {
+var isMystral2 = typeof window !== "undefined" && typeof global === "undefined" && (typeof document === "undefined" || typeof document.getElementsByTagName !== "function");
+globalThis.isMystral = isMystral2;
+if (isMystral2) {
   globalThis.global = globalThis;
   globalThis.__mystral = true;
   globalThis.PointerEvent ??= function PointerEvent() {
@@ -8976,8 +8976,8 @@ Q5.WebGPU = async function(scope, parent) {
       computeNormals() {
         const pos = this.positions;
         if (!pos) return this;
-        const numVerts = Math.floor(pos.length / 3);
-        const norm = new Float32Array(numVerts * 3);
+        const numVerts2 = Math.floor(pos.length / 3);
+        const norm = new Float32Array(numVerts2 * 3);
         if (this.indices) {
           const idx = this.indices;
           for (let i = 0; i + 2 < idx.length; i += 3) {
@@ -9001,7 +9001,7 @@ Q5.WebGPU = async function(scope, parent) {
             norm[i2 * 3 + 2] += nz;
           }
         } else {
-          for (let i = 0; i + 2 < numVerts; i += 3) {
+          for (let i = 0; i + 2 < numVerts2; i += 3) {
             const ax = pos[i * 3], ay = pos[i * 3 + 1], az = pos[i * 3 + 2];
             const bx = pos[(i + 1) * 3], by = pos[(i + 1) * 3 + 1], bz = pos[(i + 1) * 3 + 2];
             const cx = pos[(i + 2) * 3], cy = pos[(i + 2) * 3 + 1], cz = pos[(i + 2) * 3 + 2];
@@ -9021,7 +9021,7 @@ Q5.WebGPU = async function(scope, parent) {
             norm[(i + 2) * 3 + 2] = nz;
           }
         }
-        for (let i = 0; i < numVerts; i++) {
+        for (let i = 0; i < numVerts2; i++) {
           const x = norm[i * 3], y = norm[i * 3 + 1], z = norm[i * 3 + 2];
           const len = Math.hypot(x, y, z) || 1;
           norm[i * 3] = x / len;
@@ -9045,29 +9045,29 @@ Q5.WebGPU = async function(scope, parent) {
           norm = meshOrOpt.normals;
         }
       }
-      const uvs = meshOrOpt.uvs;
+      const uvs2 = meshOrOpt.uvs;
       const col = meshOrOpt.colors;
       const idx = meshOrOpt.indices;
       if (meshOrOpt.texture) {
         $.texture(meshOrOpt.texture);
       }
-      const numVerts = Math.floor(pos.length / 3);
+      const numVerts2 = Math.floor(pos.length / 3);
       if (idx && idx.length > 0) {
         for (let k = 0; k < idx.length; k++) {
           const i = idx[k];
           const p = [pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2]];
           const n = norm ? [norm[i * 3], norm[i * 3 + 1], norm[i * 3 + 2]] : [0, 0, 1];
-          const uv = uvs ? [uvs[i * 2], uvs[i * 2 + 1]] : [0, 0];
+          const uv = uvs2 ? [uvs2[i * 2], uvs2[i * 2 + 1]] : [0, 0];
           const c2 = col ? [col[i * 4], col[i * 4 + 1], col[i * 4 + 2], col[i * 4 + 3]] : currentFill;
           const tp = transformPoint(p, modelMatrix);
           const tn = transformNormal(n, modelMatrix);
           pushVertex(triVertices, tp, tn, uv, c2);
         }
       } else {
-        for (let i = 0; i < numVerts; i++) {
+        for (let i = 0; i < numVerts2; i++) {
           const p = [pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2]];
           const n = norm ? [norm[i * 3], norm[i * 3 + 1], norm[i * 3 + 2]] : [0, 0, 1];
-          const uv = uvs ? [uvs[i * 2], uvs[i * 2 + 1]] : [0, 0];
+          const uv = uvs2 ? [uvs2[i * 2], uvs2[i * 2 + 1]] : [0, 0];
           const c2 = col ? [col[i * 4], col[i * 4 + 1], col[i * 4 + 2], col[i * 4 + 3]] : currentFill;
           const tp = transformPoint(p, modelMatrix);
           const tn = transformNormal(n, modelMatrix);
@@ -9874,22 +9874,128 @@ if (typeof document == "object") {
   } else runPython();
 }
 
-// sound.js
-await Canvas();
-background("#101820");
-fill("#ffd166");
-circle(0, 0, 180);
-fill("#fcfdff");
-textAlign(CENTER, CENTER);
-textSize(28);
-text("q5 sound", 100, 100);
-userStartAudio();
-var sound = await loadSound("sound.wav");
-sound.volume = 0.35;
-sound.play();
-console.log("sound example ready", sound.loaded, sound.buffer.duration.toFixed(2) + "s");
-await new Promise((resolve) => setTimeout(resolve, 1200));
-process.exit(0);
+// utils.js
+async function initCanvas2(w, h) {
+  if (w == null && h == null || typeof w === "undefined" && typeof h === "undefined") {
+    await Canvas();
+  } else {
+    await Canvas(w, h);
+    if (isMystral) {
+      if (window.innerWidth !== w || window.innerHeight !== h) {
+        console.error(`Canvas/window size mismatch: window is ${window.innerWidth}x${window.innerHeight}, expected ${w}x${h}. Run with --width ${w} --height ${h}.`);
+        process.exit(1);
+      }
+    }
+  }
+}
+globalThis.initCanvas = initCanvas2;
+
+// 3d-mesh.js
+var Canvas3 = initCanvas;
+await Canvas3(void 0, void 0, "webgpu");
+var width = window.innerWidth;
+var height = window.innerHeight;
+var pg3d;
+try {
+  pg3d = createGraphics(width, height, "3d");
+} catch (err) {
+  console.error("createGraphics error:", err);
+}
+var gridCols = 20;
+var gridRows = 20;
+var cellSize = 18;
+var halfW = (gridCols - 1) * cellSize / 2;
+var halfH = (gridRows - 1) * cellSize / 2;
+var numVerts = gridCols * gridRows;
+var positions = new Float32Array(numVerts * 3);
+var uvs = new Float32Array(numVerts * 2);
+var indices = [];
+for (let y = 0; y < gridRows; y++) {
+  for (let x = 0; x < gridCols; x++) {
+    const idx = y * gridCols + x;
+    uvs[idx * 2 + 0] = x / (gridCols - 1);
+    uvs[idx * 2 + 1] = y / (gridRows - 1);
+    if (x < gridCols - 1 && y < gridRows - 1) {
+      const i0 = y * gridCols + x;
+      const i1 = y * gridCols + (x + 1);
+      const i2 = (y + 1) * gridCols + (x + 1);
+      const i3 = (y + 1) * gridCols + x;
+      indices.push(i0, i1, i2);
+      indices.push(i0, i2, i3);
+    }
+  }
+}
+var waveMesh = pg3d.createMesh({
+  positions,
+  uvs,
+  indices: new Uint16Array(indices)
+});
+q5.draw = function() {
+  if (!pg3d) return;
+  background("#14141e");
+  pg3d.clear();
+  pg3d.camera(350, -300, 350, 0, 0, 0, 0, 1, 0);
+  pg3d.orbitControl(true);
+  pg3d.directionalLight(255, 240, 220, 0.6, 0.8, 0.4);
+  pg3d.ambientLight(70, 70, 90);
+  const time = frameCount * 0.04;
+  for (let y = 0; y < gridRows; y++) {
+    for (let x = 0; x < gridCols; x++) {
+      const idx = (y * gridCols + x) * 3;
+      const px = x * cellSize - halfW;
+      const pz = y * cellSize - halfH;
+      const dist = Math.hypot(px, pz);
+      const py = Math.sin(dist * 0.05 - time) * 30 + Math.cos(x * 0.3 + time) * 10;
+      positions[idx + 0] = px;
+      positions[idx + 1] = py;
+      positions[idx + 2] = pz;
+    }
+  }
+  waveMesh.setPositions(positions).computeNormals();
+  pg3d.push();
+  pg3d.translate(0, 40, 0);
+  pg3d.fill(60, 140, 240);
+  pg3d.drawMesh(waveMesh);
+  pg3d.pop();
+  pg3d.push();
+  pg3d.translate(0, -120, 0);
+  pg3d.rotateY(frameCount * 0.02);
+  pg3d.rotateX(frameCount * 0.015);
+  pg3d.fill(240, 180, 50);
+  pg3d.stroke(255, 255, 255);
+  const s = 40, h = 50;
+  pg3d.beginShape(TRIANGLES);
+  pg3d.normal(0, 0.7, 0.7);
+  pg3d.vertex(0, -h, 0, 0.5, 1);
+  pg3d.vertex(-s, 0, s, 0, 0);
+  pg3d.vertex(s, 0, s, 1, 0);
+  pg3d.normal(0.7, 0.7, 0);
+  pg3d.vertex(0, -h, 0, 0.5, 1);
+  pg3d.vertex(s, 0, s, 0, 0);
+  pg3d.vertex(s, 0, -s, 1, 0);
+  pg3d.normal(0, 0.7, -0.7);
+  pg3d.vertex(0, -h, 0, 0.5, 1);
+  pg3d.vertex(s, 0, -s, 0, 0);
+  pg3d.vertex(-s, 0, -s, 1, 0);
+  pg3d.normal(-0.7, 0.7, 0);
+  pg3d.vertex(0, -h, 0, 0.5, 1);
+  pg3d.vertex(-s, 0, -s, 0, 0);
+  pg3d.vertex(-s, 0, s, 1, 0);
+  pg3d.endShape();
+  pg3d.pop();
+  pg3d.flush();
+  imageMode(CENTER);
+  image(pg3d, 0, 0, width, height);
+  fill(255);
+  noStroke();
+  textSize(16);
+  textAlign(LEFT, TOP);
+  text("q5.js 3D WebGPU - Dynamic Mesh & beginShape()", 20, 20);
+  textSize(13);
+  fill(180);
+  text(`Wave Grid: ${gridCols}x${gridRows} vertices (${indices.length / 3} triangles)`, 20, 45);
+  text("FPS: " + Math.round(frameRate()), 20, 68);
+};
 /**
  * q5.js
  * @version 4.8
