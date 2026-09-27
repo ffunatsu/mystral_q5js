@@ -145,4 +145,4 @@ Same as Mystral Native, q5.js, [libsharedmemory](https://github.com/kyr0/libshar
 
 gv-wasm's license is the same to [rust-gv-video](https://github.com/ffunatsu/rust-gv-video)'s license.
 
-Please also check ones for licenses.
+Please also check each ones for licenses.
