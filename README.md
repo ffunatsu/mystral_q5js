@@ -16,7 +16,7 @@ Also includes:
 - UDP(OSC)
 - SharedMemory
 - FileRandomAccess(GV)
-- Basic FFI using infix
+- Basic FFI using [infix](https://github.com/sanko/infix)
 - 3D drawing
 
 for mystral (and q5.js) extension.
@@ -61,8 +61,7 @@ mystral run bundle-shader.js
 
 See the [Mystral FFI guide (Experimental Fork)](docs/mystral-ffi.md) for calling dynamic libraries from V8 JavaScript, including the Rust test DLL in [`ffi-test`](ffi-test/).
 
-The FFI uses the vendored [infix](https://github.com/sanko/infix) library,
-dual-licensed under the MIT License or Artistic License 2.0.
+The FFI uses the vendored [infix](https://github.com/sanko/infix) library.
 
 ## GV video playback
 
@@ -142,7 +141,7 @@ macOS:
 
 ## License
 
-Same as Mystral Native, q5.js, and [libsharedmemory](https://github.com/kyr0/libsharedmemory)
+Same as Mystral Native, q5.js, [libsharedmemory](https://github.com/kyr0/libsharedmemory), [infix](https://github.com/sanko/infix).
 
 gv-wasm's license is the same to [rust-gv-video](https://github.com/ffunatsu/rust-gv-video)'s license.
 
