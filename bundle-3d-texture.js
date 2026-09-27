@@ -9928,7 +9928,6 @@ function updateTexture() {
 q5.draw = function() {
   if (!pg3d || !pgTex) return;
   updateTexture();
-  console.log("pgTex debug:", { width: pgTex.width, height: pgTex.height, modified: pgTex.modified });
   background("#101018");
   pg3d.clear();
   pg3d.camera(300, -250, 350, 0, 0, 0, 0, 1, 0);

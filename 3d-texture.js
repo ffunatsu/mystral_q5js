@@ -53,7 +53,6 @@ q5.draw = function () {
 
   // テクスチャ内容を毎フレーム更新
   updateTexture();
-  console.log('pgTex debug:', { width: pgTex.width, height: pgTex.height, modified: pgTex.modified });
 
   // 1. 2D 背景
   background("#101018");
