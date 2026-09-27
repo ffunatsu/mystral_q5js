@@ -4,11 +4,11 @@
 
 Minimal [q5.js](https://q5js.org/) samples (experiments) for [Mystral Native](https://github.com/mystralengine/mystralnative).
 
-The local build uses this [fork](https://github.com/ffunatsu/mystralnative/tree/dev).
+The local build uses this [mystral fork](https://github.com/ffunatsu/mystralnative/tree/dev).
 
  👉 **You can DOWNLOAD forked mystral PRECOMPILED binaries from [Releases](https://github.com/ffunatsu/mystral_q5js/releases).**
 
-This project also includes a locally modified [q5.js implementation](q5.js) (based on v4.8.2) for Mystral WebGPU compatibility.
+This project also includes a locally modified [q5.js implementation](q5.js) (based on v4.8.2, [source](https://github.com/ffunatsu/q5.js)) for Mystral WebGPU compatibility.
 
 ( Also includes WebSocket, UDP(OSC), SharedMemory, FileRandomAccess(GV), Basic FFI tests for mystral extension. )
 
