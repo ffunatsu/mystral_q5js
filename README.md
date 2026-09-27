@@ -10,7 +10,16 @@ The local build uses this [mystral fork](https://github.com/ffunatsu/mystralnati
 
 This project also includes a locally modified [q5.js implementation](q5.js) (based on v4.8.2, [source](https://github.com/ffunatsu/q5.js)) for Mystral WebGPU compatibility.
 
-( Also includes WebSocket, UDP(OSC), SharedMemory, FileRandomAccess(GV), Basic FFI tests for mystral extension. And 3D features for both q5/mystral extension. )
+Also includes:
+
+- WebSocket
+- UDP(OSC)
+- SharedMemory
+- FileRandomAccess(GV)
+- Basic FFI using infix
+- 3D drawing
+
+for mystral (and q5.js) extension.
 
 > [!Note]
 > This project is AI-assisted, using GitHub Copilot.
