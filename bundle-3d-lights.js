@@ -1,7 +1,7 @@
 // mystral-shim.js
-var isMystral = typeof window !== "undefined" && typeof global === "undefined" && (typeof document === "undefined" || typeof document.getElementsByTagName !== "function");
-globalThis.isMystral = isMystral;
-if (isMystral) {
+var isMystral2 = typeof window !== "undefined" && typeof global === "undefined" && (typeof document === "undefined" || typeof document.getElementsByTagName !== "function");
+globalThis.isMystral = isMystral2;
+if (isMystral2) {
   globalThis.global = globalThis;
   globalThis.__mystral = true;
   globalThis.PointerEvent ??= function PointerEvent() {
@@ -4265,8 +4265,8 @@ Q5.modules.util = ($, q) => {
   $.loadCSV = (url, cb) => $._loadFile(url, cb, "csv");
   $.loadXML = (url, cb) => {
     let ret = {};
-    ret.promise = fetch(url).then((res) => res.text()).then((text) => {
-      let xml = new DOMParser().parseFromString(text, "application/xml");
+    ret.promise = fetch(url).then((res) => res.text()).then((text2) => {
+      let xml = new DOMParser().parseFromString(text2, "application/xml");
       ret.DOM = xml;
       delete ret.then;
       if (cb) cb(xml);
@@ -7245,11 +7245,11 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
   let lineWidths = new Array(100);
   let charDataBuffer = new Float32Array(Q5.MAX_CHARS * 4);
   let textDataBuffer = new Float32Array(Q5.MAX_TEXTS * 8);
-  let measureText = (font, text, charCallback) => {
-    let maxWidth = 0, offsetX = 0, offsetY = 0, line = 0, printedCharCount = 0, nextCharCode = text.charCodeAt(0);
-    for (let i = 0; i < text.length; ++i) {
+  let measureText = (font, text2, charCallback) => {
+    let maxWidth = 0, offsetX = 0, offsetY = 0, line = 0, printedCharCount = 0, nextCharCode = text2.charCodeAt(0);
+    for (let i = 0; i < text2.length; ++i) {
       let charCode = nextCharCode;
-      nextCharCode = i < text.length - 1 ? text.charCodeAt(i + 1) : -1;
+      nextCharCode = i < text2.length - 1 ? text2.charCodeAt(i + 1) : -1;
       switch (charCode) {
         case 10:
           lineWidths[line] = offsetX;
@@ -7436,13 +7436,13 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
   };
   $._createPipeline = (opt) => {
     if (typeof opt == "string") opt = { shader: opt };
-    let { label, shader: shader2 = "", topology = "triangle-list", cullMode = "none", blend = "source-over" } = opt;
+    let { label, shader = "", topology = "triangle-list", cullMode = "none", blend = "source-over" } = opt;
     let module;
     if (opt.module) module = opt.module;
     else {
       module = Q5.device.createShaderModule({
         label: label + "Shader",
-        code: $._baseShaderCode + shader2
+        code: $._baseShaderCode + shader
       });
     }
     let layout = opt.layout;
@@ -7521,13 +7521,13 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
       options.shader = code;
       options.label = type;
       let id = $._createPipeline(options);
-      let shader3 = $._pipelineConfigs[id].vertex.module;
-      shader3.type = type;
-      shader3.pipelineIndex = id;
+      let shader2 = $._pipelineConfigs[id].vertex.module;
+      shader2.type = type;
+      shader2.pipelineIndex = id;
       $._customDrawHandlers[id] ??= (pass2, count) => {
         pass2.draw(count, 1, 0, 0);
       };
-      return shader3;
+      return shader2;
     }
     let def = $["_" + type + "ShaderCode"];
     let defVertIdx = def.indexOf("@vertex");
@@ -7539,31 +7539,31 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
     } else {
       code = def.slice(0, defVertIdx) + code;
     }
-    let shader2 = Q5.device.createShaderModule({
+    let shader = Q5.device.createShaderModule({
       label: type + "Shader",
       code
     });
-    shader2.type = type;
+    shader.type = type;
     let pipelineIndex = pipelineTypes.indexOf(type);
     let config = Object.assign({}, $._pipelineConfigs[pipelineIndex]);
-    config.vertex.module = config.fragment.module = shader2;
+    config.vertex.module = config.fragment.module = shader;
     let pl = plCounters[type];
     $._pipelines[pl] = Q5.device.createRenderPipeline(config);
-    $._pipelines[pl].shader = shader2;
-    shader2.pipelineIndex = pl;
+    $._pipelines[pl].shader = shader;
+    shader.pipelineIndex = pl;
     plCounters[type]++;
-    return shader2;
+    return shader;
   };
   $.createShapesShader = $.createShader;
   $.createFrameShader = (code) => $.createShader(code, "frame");
   $.createImageShader = (code) => $.createShader(code, "image");
   $.createVideoShader = (code) => $.createShader(code, "video");
   $.createTextShader = (code) => $.createShader(code, "text");
-  $.shader = (shader2) => {
-    let type = shader2.type;
-    let idx = shader2.pipelineIndex;
+  $.shader = (shader) => {
+    let type = shader.type;
+    let idx = shader.pipelineIndex;
     if (type == "frame") {
-      if (shader2.applyBeforeDraw) prevFramePL = idx;
+      if (shader.applyBeforeDraw) prevFramePL = idx;
       else framePL = idx;
     } else if (type == "shapes") shapesPL = idx;
     else if (type == "image") imagePL = idx;
@@ -9254,31 +9254,83 @@ if (typeof document == "object") {
   } else runPython();
 }
 
-// shader.js
-var CANVAS_W = 1280;
-var CANVAS_H = 720;
-await Canvas(CANVAS_W, CANVAS_H);
-if (window.innerWidth !== CANVAS_W || window.innerHeight !== CANVAS_H) {
-  console.error(`Canvas/window size mismatch: window is ${window.innerWidth}x${window.innerHeight}, expected ${CANVAS_W}x${CANVAS_H}. Run with --width ${CANVAS_W} --height ${CANVAS_H}.`);
-  process.exit(1);
+// utils.js
+async function initCanvas2(w, h) {
+  if (w == null && h == null || typeof w === "undefined" && typeof h === "undefined") {
+    await Canvas();
+  } else {
+    await Canvas(w, h);
+    if (isMystral) {
+      if (window.innerWidth !== w || window.innerHeight !== h) {
+        console.error(`Canvas/window size mismatch: window is ${window.innerWidth}x${window.innerHeight}, expected ${w}x${h}. Run with --width ${w} --height ${h}.`);
+        process.exit(1);
+      }
+    }
+  }
 }
-var wobble = createShader(`
-@vertex
-fn vertexMain(v: VertexParams) -> FragParams {
-  var vert = transformVertex(v.pos, v.matrixIndex);
+globalThis.initCanvas = initCanvas2;
 
-  let i = f32(v.vertexIndex) % 4 * 100;
-  vert.x += cos((q.time + i) * 0.01) * 0.1;
-
-  var f: FragParams;
-  f.position = vert;
-  f.color = vec4f(1, 0, 0, 1);
-  return f;
-}`);
+// 3d-lights.js
+var Canvas3 = initCanvas;
+await Canvas3();
+var width = window.innerWidth;
+var height = window.innerHeight;
+var pg3d = createGraphics(width, height, "3d");
+var lightMode = "point";
+q5.keyPressed = function() {
+  if (key === "1") lightMode = "dir";
+  if (key === "2") lightMode = "point";
+  if (key === "3") lightMode = "spot";
+};
 q5.draw = function() {
-  clear();
-  shader(wobble);
-  plane(0, 0, 100);
+  if (!pg3d) return;
+  background("#12141c");
+  pg3d.clear();
+  pg3d.orbitControl(true);
+  pg3d.ambientLight(30, 30, 45);
+  let time = frameCount * 0.03;
+  let lightX = Math.cos(time) * 180;
+  let lightZ = Math.sin(time) * 180;
+  if (lightMode === "dir") {
+    pg3d.directionalLight(255, 230, 190, 1, 1.2, -1);
+  } else if (lightMode === "point") {
+    pg3d.pointLight(255, 140, 40, lightX, -90, lightZ);
+  } else if (lightMode === "spot") {
+    let spotX = Math.cos(time * 0.5) * 100;
+    pg3d.spotLight(80, 220, 255, spotX, -250, 0, 0, 1, 0, Math.PI / 7);
+  }
+  pg3d.push();
+  pg3d.push();
+  pg3d.fill(220, 220, 235);
+  pg3d.noStroke();
+  pg3d.sphere(65, 24, 18);
+  pg3d.pop();
+  for (let i = 0; i < 4; i++) {
+    let angle = i / 4 * Math.PI * 2;
+    pg3d.push();
+    pg3d.translate(Math.cos(angle) * 140, 20, Math.sin(angle) * 140);
+    pg3d.fill(130, 170, 230);
+    pg3d.stroke(255, 255, 255);
+    pg3d.box(45);
+    pg3d.pop();
+  }
+  if (lightMode === "point") {
+    pg3d.push();
+    pg3d.translate(lightX, -90, lightZ);
+    pg3d.fill(255, 200, 50);
+    pg3d.noStroke();
+    pg3d.sphere(8, 8, 8);
+    pg3d.pop();
+  }
+  pg3d.pop();
+  pg3d.flush();
+  imageMode(CENTER);
+  image(pg3d, 0, 0, width, height);
+  fill(255);
+  noStroke();
+  textSize(15);
+  text("Light Mode: " + lightMode.toUpperCase() + " (Press [1]: Dir, [2]: Point, [3]: Spot)", 20, 30);
+  text("FPS: " + Math.round(frameRate()), 20, 55);
 };
 /**
  * q5.js

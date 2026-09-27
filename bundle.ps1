@@ -3,7 +3,7 @@ param(
   [string]$Name = "main"
 )
 
-$Names = @("main", "mouse", "shader", "image", "sound", "diagnose", "gv", "gvs")
+$Names = @("main", "mouse", "shader", "image", "sound", "diagnose", "gv", "gvs", "3d-basic", "3d-camera", "3d-lights", "3d-ortho")
 
 $ErrorActionPreference = "Stop"
 

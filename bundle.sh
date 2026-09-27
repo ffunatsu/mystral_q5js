@@ -5,7 +5,7 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
 name="${1:-main}"
-names=(main mouse shader image sound diagnose gv gvs)
+names=(main mouse shader image sound diagnose gv gvs 3d-basic 3d-camera 3d-lights 3d-ortho)
 
 bundle() {
   local entry="$1.js"
