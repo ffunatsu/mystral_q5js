@@ -21,7 +21,7 @@ Also includes:
 
 for mystral (and q5.js) extension.
 
-> [!Note]
+> [!Warning]
 > This project is AI-assisted, using GitHub Copilot.
 
 ## Bundle and run (examples)
