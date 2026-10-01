@@ -1,5 +1,5 @@
 /**
- * @module q5
+ * @module C:\Users\Owner\lab\q5js/3d\defs\q5
  */
 
 declare global {
@@ -4580,30 +4580,6 @@ declare global {
 				new (w: number, h: number, opt?: any): Q5.Image;
 			};
 
-	}
-
-	namespace Q5 {
-		interface Image {
-			width: number;
-			height: number;
-			defaultWidth: number;
-			defaultHeight: number;
-			mirrorX: boolean;
-			mirrorY: boolean;
-			copy(): Q5.Image;
-			get(x: number, y: number, w?: number, h?: number): Q5.Image | number[];
-			set(x: number, y: number, val: any): void;
-			resize(w: number, h: number): void;
-			mask(img: Q5.Image): void;
-			trim(): Q5.Image;
-			filter(type: string, value?: number): void;
-			loadPixels(): void;
-			updatePixels(): void;
-			save(fileName?: string): void;
-		}
-
-		export import Color = globalThis.Color;
-		export import Vector = globalThis.Vector;
 	}
 
 }

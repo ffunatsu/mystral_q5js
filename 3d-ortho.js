@@ -1,5 +1,6 @@
 import "./mystral-shim.js";
 import "./q5.js";
+import "./q5-webgpu-3d.js";
 import "./utils.js";
 
 let Canvas = initCanvas;
