@@ -6775,7 +6775,7 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
       $._addTexture(g, g._frameA);
       $._addTexture(g, g._frameB);
       g._beginRender();
-    } else if (g._renderer === "3d" || opt.renderer === "3d") {
+    } else if (g._3d || opt.renderer === "3d") {
       g.modified = false;
       if (g._texture) $._addTexture(g, g._texture);
       g._owner = $;
@@ -6812,14 +6812,14 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
     if (makeFrame) {
       img._render();
       img._finishRender();
-    } else if (img._renderer === "3d") {
+    } else if (img._3d) {
       if (typeof img._render === "function") img._render();
       if (img._texture && img._texture.index === void 0) {
         $._addTexture(img, img._texture);
       }
       img.modified = false;
     }
-    if (img.modified && img._renderer !== "3d") {
+    if (img.modified && !img._3d) {
       let cnv = img.canvas;
       Q5.device.queue.copyExternalImageToTexture(
         { source: cnv },
