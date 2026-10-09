@@ -1,19 +1,25 @@
+
 param(
-  [string]$Entry = "main.js",
-  [string]$Output = "bundle.js"
+  [string]$Name = "main"
 )
+
+$Names = @("main", "mouse", "shader", "image", "sound", "diagnose", "gv", "gvs", "3d-basic", "3d-camera", "3d-lights", "3d-ortho", "3d-mesh", "3d-texture")
 
 $ErrorActionPreference = "Stop"
 
 Push-Location $PSScriptRoot
 try {
-  npx esbuild $Entry --bundle --outfile=$Output --format=esm --platform=browser
+  if ($Name -eq "all") {
+    foreach ($n in $Names) {
+      npx esbuild "$n.js" --bundle --outfile="bundle-$n.js" --format=esm --platform=browser
+    }
+  }
+  else {
+    $Entry = "$Name.js"
+    $Output = "bundle-$Name.js"
+    npx esbuild $Entry --bundle --outfile=$Output --format=esm --platform=browser
+  }
 }
 finally {
-  $previousLocation = Get-Location -Stack | Select-Object -First 1
-  if ($previousLocation -and (Test-Path $previousLocation.Path)) {
-    Pop-Location
-  } else {
-    Set-Location $PSScriptRoot
-  }
+  Pop-Location
 }

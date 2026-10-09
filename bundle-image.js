@@ -1,5 +1,6 @@
 // mystral-shim.js
-var isMystral = typeof global === "undefined";
+var isMystral = typeof window !== "undefined" && typeof global === "undefined" && (typeof document === "undefined" || typeof document.getElementsByTagName !== "function");
+globalThis.isMystral = isMystral;
 if (isMystral) {
   globalThis.global = globalThis;
   globalThis.__mystral = true;
@@ -222,11 +223,11 @@ function Q5(scope, parent, renderer) {
     }
     $._redraw = false;
   };
-  $.remove = async () => {
+  $.remove = () => {
     $._removed = true;
     $.noLoop();
     if ($.canvas.remove) $.canvas.remove();
-    await runHooks("remove");
+    return runHooks("remove");
   };
   $.frameRate = (hz) => {
     if (hz && hz != $._targetFrameRate) {
@@ -489,7 +490,7 @@ if (typeof document == "object") {
   else setTimeout(init, 0);
 }
 Q5.modules.canvas = ($, q) => {
-  $._Canvas = window.OffscreenCanvas || function() {
+  $._Canvas = typeof window !== "undefined" && window.OffscreenCanvas || typeof globalThis !== "undefined" && globalThis.OffscreenCanvas || function() {
     return document.createElement("canvas");
   };
   if (Q5._server) {
@@ -585,6 +586,7 @@ Q5.modules.canvas = ($, q) => {
   $.createCanvas = $.Canvas;
   $.createGraphics = function(w, h, opt = {}) {
     if (typeof opt == "string") opt = { renderer: opt };
+    if (opt.renderer == "2d") opt.renderer = "c2d";
     let g = new Q5("graphics", void 0, opt.renderer || ($._webgpuFallback ? "webgpu-fallback" : $._renderer));
     opt.alpha ??= true;
     opt.colorSpace ??= $.canvas.colorSpace;
@@ -764,7 +766,8 @@ if (!window.matchMedia || !matchMedia("(dynamic-range: high) and (color-gamut: p
 Q5.renderers.c2d = {};
 Q5.renderers.c2d.canvas = ($, q) => {
   let c = $.canvas;
-  if ($.colorMode) $.colorMode("rgb", $._webgpu ? 1 : 255);
+  if (c) c.colorSpace = "srgb";
+  if ($.colorMode) $.colorMode("rgb", 255, "srgb");
   $._createCanvas = function(w, h, options) {
     if (!c) {
       console.error("q5 canvas could not be created. skia-canvas and jsdom packages not found.");
@@ -1068,7 +1071,15 @@ Q5.renderers.c2d.shapes = ($) => {
   };
   function rect(x, y, w, h) {
     $.ctx.beginPath();
-    $.ctx.rect(x, y, w, h);
+    if (typeof $.ctx.rect === "function") {
+      $.ctx.rect(x, y, w, h);
+    } else {
+      $.ctx.moveTo(x, y);
+      $.ctx.lineTo(x + w, y);
+      $.ctx.lineTo(x + w, y + h);
+      $.ctx.lineTo(x, y + h);
+      $.ctx.closePath();
+    }
     ink();
   }
   function roundedRect(x, y, w, h, tl, tr, br, bl) {
@@ -1262,11 +1273,15 @@ Q5.renderers.c2d.image = ($, q) => {
         g.defaultHeight = bitmap.height * $._defaultImageScale;
         g.naturalWidth = bitmap.width;
         g.naturalHeight = bitmap.height;
-        g.ctx.putImageData({
-          width: bitmap.width,
-          height: bitmap.height,
-          data: new Uint8Array(bitmap._data)
-        }, 0, 0);
+        g.ctx.putImageData(
+          {
+            width: bitmap.width,
+            height: bitmap.height,
+            data: new Uint8Array(bitmap._data)
+          },
+          0,
+          0
+        );
         bitmap.close?.();
         if (cb) cb(g);
         return g;
@@ -1958,7 +1973,7 @@ Q5.renderers.c2d.text = ($, q) => {
           let lineWidth = ctx.measureText(line).width;
           if (lineWidth > maxWidth) maxWidth = lineWidth;
         }
-        let imgW = Math.ceil(maxWidth), imgH = Math.ceil(leading * lines.length + descent);
+        let imgW = Math.max(1, Math.ceil(maxWidth)), imgH = Math.max(1, Math.ceil(leading * lines.length + descent));
         img = $.createImage.call($, imgW, imgH, {
           pixelDensity: $._pixelDensity,
           defaultImageScale: 1 / $._pixelDensity
@@ -2132,6 +2147,7 @@ Q5.modules.color = ($, q) => {
   };
   $._namedColors = {
     aqua: [0, 255, 255],
+    beige: [245, 245, 220],
     black: [0, 0, 0],
     blue: [0, 0, 255],
     brown: [165, 42, 42],
@@ -2370,7 +2386,7 @@ Q5.ColorRGB_8 = class extends Q5.ColorRGB {
     this.a = v;
   }
   toString() {
-    return `rgb(${this.r} ${this.g} ${this.b} / ${this.a / 255})`;
+    return `rgba(${this.r}, ${this.g}, ${this.b}, ${this.a / 255})`;
   }
 };
 Q5.ColorRGB_P3_8 = class extends Q5.ColorRGB_8 {
@@ -4066,18 +4082,18 @@ Q5.modules.sound = ($, q) => {
   $.getAudioContext = () => Q5.aud;
   $.userStartAudio = () => {
     if (globalThis.__mystral && !Q5.aud) {
-      Q5.aud = { state: "running", resume() {
+      Q5.aud = window.AudioContext ? window.AudioContext() : { state: "running", resume() {
       } };
     }
     if (window.AudioContext) {
       if (Q5._offlineAudio) {
         Q5._offlineAudio = false;
         Q5.aud = new window.AudioContext();
+      }
+      if (!Q5.soundOut && Q5.aud.createGain) {
         Q5.soundOut = Q5.aud.createGain();
         Q5.soundOut.connect(Q5.aud.destination);
-        for (let inst of Q5.instances) {
-          inst._userAudioStarted();
-        }
+        for (let inst of Q5.instances) inst._userAudioStarted();
       }
       return Q5.aud.resume();
     }
@@ -4111,7 +4127,7 @@ Q5.Sound = class {
   init() {
     if (!this.buffer.length) return;
     this.gainNode = Q5.aud.createGain();
-    this.pannerNode = Q5.aud.createStereoPanner();
+    this.pannerNode = Q5.aud.createStereoPanner ? Q5.aud.createStereoPanner() : this.gainNode;
     this.gainNode.connect(this.pannerNode);
     this.pannerNode.connect(Q5.soundOut);
     this.loaded = true;
@@ -4121,6 +4137,7 @@ Q5.Sound = class {
   _newSource(offset, duration) {
     let source = Q5.aud.createBufferSource();
     source.buffer = this.buffer;
+    if (source._setBuffer) source._setBuffer(this.buffer);
     source.connect(this.gainNode);
     source.loop = this._loop;
     source._startedAt = Q5.aud.currentTime;
@@ -6693,6 +6710,54 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
     let g = $._g.createImage(w, h, opt);
     $._makeDrawable(g);
     g.modified = true;
+    g.setExternalPixels = (data, format = CANVAS_FORMAT) => {
+      if (!g._texture || !data) return false;
+      if (format !== CANVAS_FORMAT) {
+        throw new Error(`External pixel format ${format} does not match canvas format ${CANVAS_FORMAT}`);
+      }
+      const bytesPerRow = g.width * 4;
+      if (bytesPerRow % 256 !== 0) {
+        throw new Error(`External pixel row pitch must be 256-byte aligned: ${bytesPerRow}`);
+      }
+      Q5.device.queue.writeTexture(
+        { texture: g._texture },
+        data,
+        { bytesPerRow, rowsPerImage: g.height },
+        [g.width, g.height, 1]
+      );
+      g.modified = false;
+      g.frameCount++;
+      return true;
+    };
+    return g;
+  };
+  $.createCompressedImage = (w, h, format = "bc3-rgba-unorm") => {
+    if (!Q5.device.features.has("texture-compression-bc")) {
+      throw new Error("WebGPU texture-compression-bc is required for compressed GV textures");
+    }
+    let g = $._g.createImage(w, h);
+    let texture = Q5.device.createTexture({
+      size: [w, h, 1],
+      format,
+      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST
+    });
+    $._addTexture(g, texture);
+    g.modified = false;
+    g.setCompressedPixels = (data) => {
+      const blockBytes = format === "bc1-rgba-unorm" ? 8 : 16;
+      const bytesPerRow = Math.ceil(w / 4) * blockBytes;
+      if (bytesPerRow % 256 !== 0) {
+        throw new Error(`Compressed GV row pitch must be 256-byte aligned: ${bytesPerRow}`);
+      }
+      Q5.device.queue.writeTexture(
+        { texture: g._texture },
+        data,
+        { bytesPerRow, rowsPerImage: Math.ceil(h / 4) },
+        [w, h, 1]
+      );
+      g.frameCount++;
+      return true;
+    };
     return g;
   };
   let _createGraphics = $.createGraphics;
@@ -6710,6 +6775,10 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
       $._addTexture(g, g._frameA);
       $._addTexture(g, g._frameB);
       g._beginRender();
+    } else if (g._3d || opt.renderer === "3d") {
+      g.modified = false;
+      if (g._texture) $._addTexture(g, g._texture);
+      g._owner = $;
     } else {
       $._makeDrawable(g);
       g.modified = true;
@@ -6743,8 +6812,14 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
     if (makeFrame) {
       img._render();
       img._finishRender();
+    } else if (img._3d) {
+      if (typeof img._render === "function") img._render();
+      if (img._texture && img._texture.index === void 0) {
+        $._addTexture(img, img._texture);
+      }
+      img.modified = false;
     }
-    if (img.modified) {
+    if (img.modified && !img._3d) {
       let cnv = img.canvas;
       Q5.device.queue.copyExternalImageToTexture(
         { source: cnv },
@@ -7532,7 +7607,7 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
     ellipseIndexBuffer?.destroy();
     for (let b of $._buffers) b.destroy();
     $._buffers = [];
-    _remove();
+    return _remove();
   };
 };
 Q5.THRESHOLD = 1;
@@ -7566,7 +7641,11 @@ Q5._requestGPU = async () => {
       console.warn("q5 WebGPU could not start! No appropriate GPUAdapter found, Vulkan may need to be enabled.");
       return false;
     }
-    let device = await adapter.requestDevice();
+    const requiredFeatures = [];
+    if (adapter.features.has("texture-compression-bc")) {
+      requiredFeatures.push("texture-compression-bc");
+    }
+    let device = await adapter.requestDevice({ requiredFeatures });
     const vertexStorageLimit = device.limits.maxStorageBuffersInVertexStage ?? device.limits.maxStorageBuffersPerShaderStage;
     if (vertexStorageLimit < 3) {
       console.warn("q5 WebGPU requires vertex storage buffers, which are not supported by this device.");
@@ -7580,8 +7659,14 @@ Q5._requestGPU = async () => {
     Q5.MAX_CHARS = min(Q5.MAX_CHARS, floor(maxStorage / 16));
     Q5.MAX_TEXTS = min(Q5.MAX_TEXTS, floor(maxStorage / 32));
     device.lost.then((e) => {
+      if (!e || e.reason === void 0 && e.message === void 0) return;
+      if (e.reason == "destroyed") return;
       console.error("WebGPU crashed!");
       console.error(e);
+      requestAnimationFrame(async () => {
+        Q5.device = Q5._gpuTask = null;
+        await Q5.initWebGPU();
+      });
     });
     Q5.device = device;
     if (typeof window == "object") {
@@ -8262,7 +8347,13 @@ if (typeof document == "object") {
 
 // image.js
 console.log("before Canvas");
-await Canvas(1280, 720);
+var CANVAS_W = 1280;
+var CANVAS_H = 720;
+await Canvas(CANVAS_W, CANVAS_H);
+if (window.innerWidth !== CANVAS_W || window.innerHeight !== CANVAS_H) {
+  console.error(`Canvas/window size mismatch: window is ${window.innerWidth}x${window.innerHeight}, expected ${CANVAS_W}x${CANVAS_H}. Run with --width ${CANVAS_W} --height ${CANVAS_H}.`);
+  process.exit(1);
+}
 console.log("Canvas ready");
 var screenshot = await loadImage("docs/screenshot.png");
 console.log("type of screenshot: " + typeof screenshot);

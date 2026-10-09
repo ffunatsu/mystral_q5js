@@ -180,11 +180,11 @@ function Q5(scope, parent, renderer) {
 		}
 		$._redraw = false;
 	};
-	$.remove = async () => {
+	$.remove = () => {
 		$._removed = true;
 		$.noLoop();
 		if ($.canvas.remove) $.canvas.remove();
-		await runHooks('remove');
+		return runHooks('remove');
 	};
 
 	$.frameRate = (hz) => {
@@ -510,7 +510,8 @@ if (typeof document == 'object') {
 }
 Q5.modules.canvas = ($, q) => {
 	$._Canvas =
-		window.OffscreenCanvas ||
+		(typeof window !== 'undefined' && window.OffscreenCanvas) ||
+		(typeof globalThis !== 'undefined' && globalThis.OffscreenCanvas) ||
 		function () {
 			return document.createElement('canvas');
 		};
@@ -634,6 +635,7 @@ Q5.modules.canvas = ($, q) => {
 
 	$.createGraphics = function (w, h, opt = {}) {
 		if (typeof opt == 'string') opt = { renderer: opt };
+		if (opt.renderer == '2d') opt.renderer = 'c2d';
 		let g = new Q5('graphics', undefined, opt.renderer || ($._webgpuFallback ? 'webgpu-fallback' : $._renderer));
 		opt.alpha ??= true;
 		opt.colorSpace ??= $.canvas.colorSpace;
@@ -852,8 +854,9 @@ Q5.renderers.c2d = {};
 
 Q5.renderers.c2d.canvas = ($, q) => {
 	let c = $.canvas;
+	if (c) c.colorSpace = 'srgb';
 
-	if ($.colorMode) $.colorMode('rgb', $._webgpu ? 1 : 255);
+	if ($.colorMode) $.colorMode('rgb', 255, 'srgb');
 
 	$._createCanvas = function (w, h, options) {
 		if (!c) {
@@ -1214,7 +1217,15 @@ Q5.renderers.c2d.shapes = ($) => {
 
 	function rect(x, y, w, h) {
 		$.ctx.beginPath();
-		$.ctx.rect(x, y, w, h);
+		if (typeof $.ctx.rect === 'function') {
+			$.ctx.rect(x, y, w, h);
+		} else {
+			$.ctx.moveTo(x, y);
+			$.ctx.lineTo(x + w, y);
+			$.ctx.lineTo(x + w, y + h);
+			$.ctx.lineTo(x, y + h);
+			$.ctx.closePath();
+		}
 		ink();
 	}
 
@@ -1467,6 +1478,7 @@ Q5.renderers.c2d.image = ($, q) => {
 
 		let g = $.createImage(1, 1, opt);
 		let pd = g._pixelDensity;
+
 		if (typeof window.Image != 'function' && typeof createImageBitmap == 'function') {
 			g.promise = fetch(url)
 				.then((res) => {
@@ -1475,16 +1487,20 @@ Q5.renderers.c2d.image = ($, q) => {
 				})
 				.then((bitmap) => {
 					delete g.then;
-					   g = $.createImage(Math.ceil(bitmap.width / pd), Math.ceil(bitmap.height / pd), opt);
+					g = $.createImage(Math.ceil(bitmap.width / pd), Math.ceil(bitmap.height / pd), opt);
 					g.defaultWidth = bitmap.width * $._defaultImageScale;
 					g.defaultHeight = bitmap.height * $._defaultImageScale;
 					g.naturalWidth = bitmap.width;
 					g.naturalHeight = bitmap.height;
-					g.ctx.putImageData({
-						width: bitmap.width,
-						height: bitmap.height,
-						data: new Uint8Array(bitmap._data)
-					}, 0, 0);
+					g.ctx.putImageData(
+						{
+							width: bitmap.width,
+							height: bitmap.height,
+							data: new Uint8Array(bitmap._data)
+						},
+						0,
+						0
+					);
 					bitmap.close?.();
 					if (cb) cb(g);
 					return g;
@@ -2311,8 +2327,8 @@ Q5.renderers.c2d.text = ($, q) => {
 					if (lineWidth > maxWidth) maxWidth = lineWidth;
 				}
 
-				let imgW = Math.ceil(maxWidth),
-					imgH = Math.ceil(leading * lines.length + descent);
+				let imgW = Math.max(1, Math.ceil(maxWidth)),
+					imgH = Math.max(1, Math.ceil(leading * lines.length + descent));
 
 				img = $.createImage.call($, imgW, imgH, {
 					pixelDensity: $._pixelDensity,
@@ -2528,6 +2544,7 @@ Q5.modules.color = ($, q) => {
 
 	$._namedColors = {
 		aqua: [0, 255, 255],
+		beige: [245, 245, 220],
 		black: [0, 0, 0],
 		blue: [0, 0, 255],
 		brown: [165, 42, 42],
@@ -2784,7 +2801,7 @@ Q5.ColorRGB_8 = class extends Q5.ColorRGB {
 		this.a = v;
 	}
 	toString() {
-		return `rgb(${this.r} ${this.g} ${this.b} / ${this.a / 255})`;
+		return `rgba(${this.r}, ${this.g}, ${this.b}, ${this.a / 255})`;
 	}
 };
 
@@ -4748,18 +4765,17 @@ Q5.modules.sound = ($, q) => {
 
 	$.userStartAudio = () => {
 		if (globalThis.__mystral && !Q5.aud) {
-			Q5.aud = { state: 'running', resume() {} };
+			Q5.aud = window.AudioContext ? window.AudioContext() : { state: 'running', resume() {} };
 		}
 		if (window.AudioContext) {
 			if (Q5._offlineAudio) {
 				Q5._offlineAudio = false;
 				Q5.aud = new window.AudioContext();
+			}
+			if (!Q5.soundOut && Q5.aud.createGain) {
 				Q5.soundOut = Q5.aud.createGain();
 				Q5.soundOut.connect(Q5.aud.destination);
-
-				for (let inst of Q5.instances) {
-					inst._userAudioStarted();
-				}
+				for (let inst of Q5.instances) inst._userAudioStarted();
 			}
 			return Q5.aud.resume();
 		}
@@ -4800,7 +4816,7 @@ Q5.Sound = class {
 		if (!this.buffer.length) return;
 
 		this.gainNode = Q5.aud.createGain();
-		this.pannerNode = Q5.aud.createStereoPanner();
+		this.pannerNode = Q5.aud.createStereoPanner ? Q5.aud.createStereoPanner() : this.gainNode;
 		this.gainNode.connect(this.pannerNode);
 		this.pannerNode.connect(Q5.soundOut);
 
@@ -4812,6 +4828,7 @@ Q5.Sound = class {
 	_newSource(offset, duration) {
 		let source = Q5.aud.createBufferSource();
 		source.buffer = this.buffer;
+		if (source._setBuffer) source._setBuffer(this.buffer);
 		source.connect(this.gainNode);
 		source.loop = this._loop;
 
@@ -8025,6 +8042,55 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
 		$._makeDrawable(g);
 		// assume the user will draw to the image canvas
 		g.modified = true;
+		g.setExternalPixels = (data, format = CANVAS_FORMAT) => {
+			if (!g._texture || !data) return false;
+			if (format !== CANVAS_FORMAT) {
+				throw new Error(`External pixel format ${format} does not match canvas format ${CANVAS_FORMAT}`);
+			}
+			const bytesPerRow = g.width * 4;
+			if (bytesPerRow % 256 !== 0) {
+				throw new Error(`External pixel row pitch must be 256-byte aligned: ${bytesPerRow}`);
+			}
+			Q5.device.queue.writeTexture(
+				{ texture: g._texture },
+				data,
+				{ bytesPerRow, rowsPerImage: g.height },
+				[g.width, g.height, 1]
+			);
+			g.modified = false;
+			g.frameCount++;
+			return true;
+		};
+		return g;
+	};
+
+	$.createCompressedImage = (w, h, format = 'bc3-rgba-unorm') => {
+		if (!Q5.device.features.has('texture-compression-bc')) {
+			throw new Error('WebGPU texture-compression-bc is required for compressed GV textures');
+		}
+		let g = $._g.createImage(w, h);
+		let texture = Q5.device.createTexture({
+			size: [w, h, 1],
+			format,
+			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST
+		});
+		$._addTexture(g, texture);
+		g.modified = false;
+		g.setCompressedPixels = (data) => {
+			const blockBytes = format === 'bc1-rgba-unorm' ? 8 : 16;
+			const bytesPerRow = Math.ceil(w / 4) * blockBytes;
+			if (bytesPerRow % 256 !== 0) {
+				throw new Error(`Compressed GV row pitch must be 256-byte aligned: ${bytesPerRow}`);
+			}
+			Q5.device.queue.writeTexture(
+				{ texture: g._texture },
+				data,
+				{ bytesPerRow, rowsPerImage: Math.ceil(h / 4) },
+				[w, h, 1]
+			);
+			g.frameCount++;
+			return true;
+		};
 		return g;
 	};
 
@@ -8047,6 +8113,10 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
 			$._addTexture(g, g._frameA);
 			$._addTexture(g, g._frameB);
 			g._beginRender();
+		} else if (g._3d || opt.renderer === '3d') {
+			g.modified = false;
+			if (g._texture) $._addTexture(g, g._texture);
+			g._owner = $;
 		} else {
 			$._makeDrawable(g);
 			// assume the user will draw to the graphics canvas
@@ -8094,9 +8164,15 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
 		if (makeFrame) {
 			img._render();
 			img._finishRender();
+		} else if (img._3d) {
+			if (typeof img._render === 'function') img._render();
+			if (img._texture && img._texture.index === undefined) {
+				$._addTexture(img, img._texture);
+			}
+			img.modified = false;
 		}
 
-		if (img.modified) {
+		if (img.modified && !img._3d) {
 			let cnv = img.canvas;
 			Q5.device.queue.copyExternalImageToTexture(
 				{ source: cnv },
@@ -9052,7 +9128,7 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
 		for (let b of $._buffers) b.destroy();
 		$._buffers = [];
 
-		_remove();
+		return _remove();
 	};
 };
 
@@ -9094,7 +9170,11 @@ Q5._requestGPU = async () => {
 			return false;
 		}
 
-		let device = await adapter.requestDevice();
+		const requiredFeatures = [];
+		if (adapter.features.has('texture-compression-bc')) {
+			requiredFeatures.push('texture-compression-bc');
+		}
+		let device = await adapter.requestDevice({ requiredFeatures });
 
 		const vertexStorageLimit =
 			device.limits.maxStorageBuffersInVertexStage ?? device.limits.maxStorageBuffersPerShaderStage;
@@ -9116,8 +9196,16 @@ Q5._requestGPU = async () => {
 		Q5.MAX_TEXTS = min(Q5.MAX_TEXTS, floor(maxStorage / 32));
 
 		device.lost.then((e) => {
+			if (!e || (e.reason === undefined && e.message === undefined)) return;
+			// if purposefully destroyed, do nothing.
+			if (e.reason == 'destroyed') return;
+			// else attempt restart
 			console.error('WebGPU crashed!');
 			console.error(e);
+			requestAnimationFrame(async () => {
+				Q5.device = Q5._gpuTask = null;
+				await Q5.initWebGPU();
+			});
 		});
 
 		Q5.device = device;

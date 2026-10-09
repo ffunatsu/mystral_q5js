@@ -1,0 +1,15 @@
+{
+  "name": "mystral-osc-test",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal node-osc test for Mystral Native",
+  "main": "send-osc.js",
+  "type": "module",
+  "scripts": {
+    "test:node": "node send-osc.js",
+    "test:mystral": "mystral run send-osc.js"
+  },
+  "dependencies": {
+    "node-osc": "^11.7.1"
+  }
+}

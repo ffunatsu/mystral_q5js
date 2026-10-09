@@ -161,11 +161,11 @@ function Q52(scope, parent, renderer) {
     }
     $._redraw = false;
   };
-  $.remove = async () => {
+  $.remove = () => {
     $._removed = true;
     $.noLoop();
     if ($.canvas.remove) $.canvas.remove();
-    await runHooks("remove");
+    return runHooks("remove");
   };
   $.frameRate = (hz) => {
     if (hz && hz != $._targetFrameRate) {
@@ -431,7 +431,7 @@ var init_q5 = __esm({
       else setTimeout(init, 0);
     }
     Q52.modules.canvas = ($, q) => {
-      $._Canvas = window.OffscreenCanvas || function() {
+      $._Canvas = typeof window !== "undefined" && window.OffscreenCanvas || typeof globalThis !== "undefined" && globalThis.OffscreenCanvas || function() {
         return document.createElement("canvas");
       };
       if (Q52._server) {
@@ -527,6 +527,7 @@ var init_q5 = __esm({
       $.createCanvas = $.Canvas;
       $.createGraphics = function(w, h, opt = {}) {
         if (typeof opt == "string") opt = { renderer: opt };
+        if (opt.renderer == "2d") opt.renderer = "c2d";
         let g = new Q52("graphics", void 0, opt.renderer || ($._webgpuFallback ? "webgpu-fallback" : $._renderer));
         opt.alpha ??= true;
         opt.colorSpace ??= $.canvas.colorSpace;
@@ -706,7 +707,8 @@ var init_q5 = __esm({
     Q52.renderers.c2d = {};
     Q52.renderers.c2d.canvas = ($, q) => {
       let c = $.canvas;
-      if ($.colorMode) $.colorMode("rgb", $._webgpu ? 1 : 255);
+      if (c) c.colorSpace = "srgb";
+      if ($.colorMode) $.colorMode("rgb", 255, "srgb");
       $._createCanvas = function(w, h, options) {
         if (!c) {
           console.error("q5 canvas could not be created. skia-canvas and jsdom packages not found.");
@@ -1010,7 +1012,15 @@ var init_q5 = __esm({
       };
       function rect2(x, y, w, h) {
         $.ctx.beginPath();
-        $.ctx.rect(x, y, w, h);
+        if (typeof $.ctx.rect === "function") {
+          $.ctx.rect(x, y, w, h);
+        } else {
+          $.ctx.moveTo(x, y);
+          $.ctx.lineTo(x + w, y);
+          $.ctx.lineTo(x + w, y + h);
+          $.ctx.lineTo(x, y + h);
+          $.ctx.closePath();
+        }
         ink();
       }
       function roundedRect(x, y, w, h, tl, tr, br, bl) {
@@ -1193,6 +1203,37 @@ var init_q5 = __esm({
         } else opt = void 0;
         let g = $.createImage(1, 1, opt);
         let pd = g._pixelDensity;
+        if (typeof window.Image != "function" && typeof createImageBitmap == "function") {
+          g.promise = fetch(url).then((res) => {
+            if (!res.ok) throw new Error(`Failed to load image: ${res.status}`);
+            return createImageBitmap(res);
+          }).then((bitmap) => {
+            delete g.then;
+            g = $.createImage(Math.ceil(bitmap.width / pd), Math.ceil(bitmap.height / pd), opt);
+            g.defaultWidth = bitmap.width * $._defaultImageScale;
+            g.defaultHeight = bitmap.height * $._defaultImageScale;
+            g.naturalWidth = bitmap.width;
+            g.naturalHeight = bitmap.height;
+            g.ctx.putImageData(
+              {
+                width: bitmap.width,
+                height: bitmap.height,
+                data: new Uint8Array(bitmap._data)
+              },
+              0,
+              0
+            );
+            bitmap.close?.();
+            if (cb) cb(g);
+            return g;
+          });
+          $._loaders.push(g.promise);
+          g.then = (resolve, reject2) => {
+            g._usedAwait = true;
+            return g.promise.then(resolve, reject2);
+          };
+          return g;
+        }
         let img = new window.Image();
         img.crossOrigin = "Anonymous";
         g.promise = new Promise((resolve, reject2) => {
@@ -1873,7 +1914,7 @@ var init_q5 = __esm({
               let lineWidth = ctx.measureText(line2).width;
               if (lineWidth > maxWidth) maxWidth = lineWidth;
             }
-            let imgW = Math.ceil(maxWidth), imgH = Math.ceil(leading * lines.length + descent);
+            let imgW = Math.max(1, Math.ceil(maxWidth)), imgH = Math.max(1, Math.ceil(leading * lines.length + descent));
             img = $.createImage.call($, imgW, imgH, {
               pixelDensity: $._pixelDensity,
               defaultImageScale: 1 / $._pixelDensity
@@ -2047,6 +2088,7 @@ var init_q5 = __esm({
       };
       $._namedColors = {
         aqua: [0, 255, 255],
+        beige: [245, 245, 220],
         black: [0, 0, 0],
         blue: [0, 0, 255],
         brown: [165, 42, 42],
@@ -2285,7 +2327,7 @@ var init_q5 = __esm({
         this.a = v;
       }
       toString() {
-        return `rgb(${this.r} ${this.g} ${this.b} / ${this.a / 255})`;
+        return `rgba(${this.r}, ${this.g}, ${this.b}, ${this.a / 255})`;
       }
     };
     Q52.ColorRGB_P3_8 = class extends Q52.ColorRGB_8 {
@@ -3981,18 +4023,18 @@ main {
       $.getAudioContext = () => Q52.aud;
       $.userStartAudio = () => {
         if (globalThis.__mystral && !Q52.aud) {
-          Q52.aud = { state: "running", resume() {
+          Q52.aud = window.AudioContext ? window.AudioContext() : { state: "running", resume() {
           } };
         }
         if (window.AudioContext) {
           if (Q52._offlineAudio) {
             Q52._offlineAudio = false;
             Q52.aud = new window.AudioContext();
+          }
+          if (!Q52.soundOut && Q52.aud.createGain) {
             Q52.soundOut = Q52.aud.createGain();
             Q52.soundOut.connect(Q52.aud.destination);
-            for (let inst of Q52.instances) {
-              inst._userAudioStarted();
-            }
+            for (let inst of Q52.instances) inst._userAudioStarted();
           }
           return Q52.aud.resume();
         }
@@ -4026,7 +4068,7 @@ main {
       init() {
         if (!this.buffer.length) return;
         this.gainNode = Q52.aud.createGain();
-        this.pannerNode = Q52.aud.createStereoPanner();
+        this.pannerNode = Q52.aud.createStereoPanner ? Q52.aud.createStereoPanner() : this.gainNode;
         this.gainNode.connect(this.pannerNode);
         this.pannerNode.connect(Q52.soundOut);
         this.loaded = true;
@@ -4036,6 +4078,7 @@ main {
       _newSource(offset, duration) {
         let source = Q52.aud.createBufferSource();
         source.buffer = this.buffer;
+        if (source._setBuffer) source._setBuffer(this.buffer);
         source.connect(this.gainNode);
         source.loop = this._loop;
         source._startedAt = Q52.aud.currentTime;
@@ -6608,6 +6651,54 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
         let g = $._g.createImage(w, h, opt);
         $._makeDrawable(g);
         g.modified = true;
+        g.setExternalPixels = (data, format = CANVAS_FORMAT) => {
+          if (!g._texture || !data) return false;
+          if (format !== CANVAS_FORMAT) {
+            throw new Error(`External pixel format ${format} does not match canvas format ${CANVAS_FORMAT}`);
+          }
+          const bytesPerRow = g.width * 4;
+          if (bytesPerRow % 256 !== 0) {
+            throw new Error(`External pixel row pitch must be 256-byte aligned: ${bytesPerRow}`);
+          }
+          Q52.device.queue.writeTexture(
+            { texture: g._texture },
+            data,
+            { bytesPerRow, rowsPerImage: g.height },
+            [g.width, g.height, 1]
+          );
+          g.modified = false;
+          g.frameCount++;
+          return true;
+        };
+        return g;
+      };
+      $.createCompressedImage = (w, h, format = "bc3-rgba-unorm") => {
+        if (!Q52.device.features.has("texture-compression-bc")) {
+          throw new Error("WebGPU texture-compression-bc is required for compressed GV textures");
+        }
+        let g = $._g.createImage(w, h);
+        let texture = Q52.device.createTexture({
+          size: [w, h, 1],
+          format,
+          usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST
+        });
+        $._addTexture(g, texture);
+        g.modified = false;
+        g.setCompressedPixels = (data) => {
+          const blockBytes = format === "bc1-rgba-unorm" ? 8 : 16;
+          const bytesPerRow = Math.ceil(w / 4) * blockBytes;
+          if (bytesPerRow % 256 !== 0) {
+            throw new Error(`Compressed GV row pitch must be 256-byte aligned: ${bytesPerRow}`);
+          }
+          Q52.device.queue.writeTexture(
+            { texture: g._texture },
+            data,
+            { bytesPerRow, rowsPerImage: Math.ceil(h / 4) },
+            [w, h, 1]
+          );
+          g.frameCount++;
+          return true;
+        };
         return g;
       };
       let _createGraphics = $.createGraphics;
@@ -6625,6 +6716,10 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
           $._addTexture(g, g._frameA);
           $._addTexture(g, g._frameB);
           g._beginRender();
+        } else if (g._3d || opt.renderer === "3d") {
+          g.modified = false;
+          if (g._texture) $._addTexture(g, g._texture);
+          g._owner = $;
         } else {
           $._makeDrawable(g);
           g.modified = true;
@@ -6658,8 +6753,14 @@ fn fragMain(f: FragParams) -> @location(0) vec4f {
         if (makeFrame) {
           img._render();
           img._finishRender();
+        } else if (img._3d) {
+          if (typeof img._render === "function") img._render();
+          if (img._texture && img._texture.index === void 0) {
+            $._addTexture(img, img._texture);
+          }
+          img.modified = false;
         }
-        if (img.modified) {
+        if (img.modified && !img._3d) {
           let cnv = img.canvas;
           Q52.device.queue.copyExternalImageToTexture(
             { source: cnv },
@@ -7447,7 +7548,7 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
         ellipseIndexBuffer?.destroy();
         for (let b of $._buffers) b.destroy();
         $._buffers = [];
-        _remove();
+        return _remove();
       };
     };
     Q52.THRESHOLD = 1;
@@ -7481,7 +7582,11 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
           console.warn("q5 WebGPU could not start! No appropriate GPUAdapter found, Vulkan may need to be enabled.");
           return false;
         }
-        let device = await adapter.requestDevice();
+        const requiredFeatures = [];
+        if (adapter.features.has("texture-compression-bc")) {
+          requiredFeatures.push("texture-compression-bc");
+        }
+        let device = await adapter.requestDevice({ requiredFeatures });
         const vertexStorageLimit = device.limits.maxStorageBuffersInVertexStage ?? device.limits.maxStorageBuffersPerShaderStage;
         if (vertexStorageLimit < 3) {
           console.warn("q5 WebGPU requires vertex storage buffers, which are not supported by this device.");
@@ -7495,8 +7600,14 @@ fn fragMain(f : FragParams) -> @location(0) vec4f {
         Q52.MAX_CHARS = min(Q52.MAX_CHARS, floor(maxStorage / 16));
         Q52.MAX_TEXTS = min(Q52.MAX_TEXTS, floor(maxStorage / 32));
         device.lost.then((e) => {
+          if (!e || e.reason === void 0 && e.message === void 0) return;
+          if (e.reason == "destroyed") return;
           console.error("WebGPU crashed!");
           console.error(e);
+          requestAnimationFrame(async () => {
+            Q52.device = Q52._gpuTask = null;
+            await Q52.initWebGPU();
+          });
         });
         Q52.device = device;
         if (typeof window == "object") {
@@ -8178,7 +8289,8 @@ window._runPy = _run_py
 });
 
 // mystral-shim.js
-var isMystral = typeof global === "undefined";
+var isMystral = typeof window !== "undefined" && typeof global === "undefined" && (typeof document === "undefined" || typeof document.getElementsByTagName !== "function");
+globalThis.isMystral = isMystral;
 if (isMystral) {
   globalThis.global = globalThis;
   globalThis.__mystral = true;
@@ -8249,14 +8361,20 @@ if (isMystral) {
   }
 }
 
-// diagnose-q5.js
+// diagnose.js
 console.log("diagnose: before q5 import");
 Promise.resolve().then(() => (init_q5(), q5_exports)).then(() => {
   console.log("diagnose: q5 import completed");
   console.log("diagnose: typeof Q5 = " + typeof Q5);
   console.log("diagnose: typeof window = " + typeof window);
   console.log("diagnose: typeof Canvas = " + typeof Canvas);
-  return Canvas(1280, 720);
+  const CANVAS_W = 1280, CANVAS_H = 720;
+  let canvas = Canvas(CANVAS_W, CANVAS_H);
+  if (window.innerWidth !== CANVAS_W || window.innerHeight !== CANVAS_H) {
+    console.error(`Canvas/window size mismatch: window is ${window.innerWidth}x${window.innerHeight}, expected ${CANVAS_W}x${CANVAS_H}. Run with --width ${CANVAS_W} --height ${CANVAS_H}.`);
+    process.exit(1);
+  }
+  return canvas;
 }).then(() => {
   console.log("diagnose: Canvas ready");
   background("#101820");
