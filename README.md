@@ -96,8 +96,7 @@ Windows (PowerShell):
 git submodule update --init --recursive
 Set-Location mystralnative
 
-C:\vcpkg\vcpkg.exe install curl:x64-node scripts/download-deps.mjs
-
+C:\vcpkg\vcpkg.exe install curl:x64-windows
 node scripts/download-deps.mjs
 
 cmake -B build `
